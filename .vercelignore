@@ -1,0 +1,11 @@
+node_modules
+tests
+debug_pbd.js
+nan_fix_test.js
+test_agent_d.js
+test_agent_d2.js
+test_agent_d3.js
+test_d_final.js
+package.json
+package-lock.json
+.DS_Store
