@@ -1324,7 +1324,7 @@ function planetRadius(diameterKm) {
 /* Orbital distance scale: a power-law compression.
    Real: Mercury 0.39 AU, Neptune 30 AU (77× range).
    Compressed: Mercury 35, Neptune 620 (18× range). */
-// A.8 — named constants for orbit-compression curve (see compressed-scale visual).
+// named constants for orbit-compression curve (see compressed-scale visual).
 // Resulting compressed distances: Mercury ~35, Earth ~60, Jupiter ~298, Neptune ~558.
 const INNER_LINEAR_SLOPE = 25;    // compressed units per AU for inner solar system
 const OUTER_LOG_SCALE    = 120;   // log-compressed scale factor for outer planets
@@ -2412,14 +2412,15 @@ function _updateHoverLabel(cx, cy) {
   _bodyLabelEl.classList.add("visible");
 }
 
+const _dropRay   = new THREE.Raycaster();
+const _dropPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const _dropHit   = new THREE.Vector3();
+
 function dropRockAtScreenPoint(clientX, clientY) {
   if (!rockMode) return false;
-  const rc = new THREE.Raycaster();
-  rc.setFromCamera(screenToNDC(clientX, clientY), camera);
-  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-  const hit = new THREE.Vector3();
-  if (rc.ray.intersectPlane(plane, hit)) {
-    spawnRock(hit);
+  _dropRay.setFromCamera(screenToNDC(clientX, clientY), camera);
+  if (_dropRay.ray.intersectPlane(_dropPlane, _dropHit)) {
+    spawnRock(_dropHit);
     haptic([10, 10, 10]);
     return true;
   }
@@ -2482,7 +2483,7 @@ function endPointer(e) {
 canvas.addEventListener("pointerup", endPointer);
 canvas.addEventListener("pointercancel", endPointer);
 
-// B.2 — hover label listener (fires when pointer is not held and not during PBD)
+// hover label listener (fires when pointer is not held and not during PBD)
 canvas.addEventListener("pointermove", (e) => {
   if (_isPointerDown || pbdActive) {
     if (!_bodyLabelEl) _bodyLabelEl = document.getElementById("body-label");
@@ -3081,7 +3082,7 @@ function updateProbes() {
     po.sprite.position.set(pos[0], pos[1], pos[2]);
     po.sprite.visible = true;
   }
-  // A.5 — if the focused entity is a probe that went invisible, fall back to Sun
+  // if the focused entity is a probe that went invisible, fall back to Sun
   if (camState.focus) {
     const focused = bodyObjects[camState.focus];
     if (focused && focused.isProbe && focused.sprite && !focused.sprite.visible) {
@@ -3230,7 +3231,7 @@ scaleBtn.addEventListener("click", () => {
     line.material.dispose();
   }
   orbitLines.length = 0;
-  // A.6 — Rebuild for each orbiting body from BODIES (skips Sun; Halley handled separately)
+  // Rebuild for each orbiting body from BODIES (skips Sun; Halley handled separately)
   for (const body of BODIES) {
     if (!(body.orbitAU > 0) || body.isComet) continue;
     const b = bodyObjects[body.name];
@@ -3566,7 +3567,7 @@ function buildComet() {
   scene.add(line);
   orbitLines.push(line);
 
-  // A.7 — unified Halley record (was previously split between cometObj + bodyObjects)
+  // unified Halley record
   bodyObjects["Halley"] = {
     name: "Halley",
     data: { ...COMET, diameterKm: COMET.diameterKm, orbitDays: COMET.orbitDays, rotationDays: COMET.rotationDays, tiltDeg: 0, orbitAU: COMET.semiMajorAxisAU, color: COMET.color, info: COMET.info },
@@ -3660,7 +3661,7 @@ buildScene().then(() => {
   document.getElementById("loader").classList.add("gone");
 });
 
-// B.3 — Legend panel toggle
+// Legend panel toggle
 function toggleLegendPanel() {
   const p = document.getElementById("legendPanel");
   if (!p) return;
@@ -3668,7 +3669,7 @@ function toggleLegendPanel() {
 }
 document.getElementById("legendBtn")?.addEventListener("click", toggleLegendPanel);
 
-// B.4 — Preview tooltip init for [data-preview] buttons
+// Preview tooltip init for [data-preview] buttons
 (function initPreviewTips() {
   const tip = document.getElementById("preview-tip");
   if (!tip) return;
@@ -3732,7 +3733,7 @@ document.getElementById("legendBtn")?.addEventListener("click", toggleLegendPane
   });
 })();
 
-// B.1 — Coach card init (first-run onboarding)
+// Coach card init (first-run onboarding)
 function initCoachCard() {
   try {
     if (localStorage.getItem("coach-dismissed") === "1") return;
@@ -3762,6 +3763,7 @@ function initCoachCard() {
 // Persists state via localStorage under `panel-<key>-collapsed`.
 (function setupCollapsiblePanels() {
   const CHEVRON_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+  const DEFAULTS_COLLAPSED = new Set(["help", "timeJumps"]);
   const panels = document.querySelectorAll(".panel[data-collapsible]");
   panels.forEach(panel => {
     const key = panel.dataset.key;
@@ -3778,10 +3780,11 @@ function initCoachCard() {
     btn.innerHTML = CHEVRON_SVG;
     panel.appendChild(btn);
 
-    // Restore state from localStorage
-    let persisted;
+    // Restore state from localStorage; on first visit, fall back to per-key defaults.
+    let persisted = null;
     try { persisted = localStorage.getItem(storageKey); } catch (_) {}
-    if (persisted === "1") panel.classList.add("collapsed");
+    const startCollapsed = persisted === "1" || (persisted === null && DEFAULTS_COLLAPSED.has(key));
+    if (startCollapsed) panel.classList.add("collapsed");
 
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
