@@ -1017,6 +1017,213 @@
     margin-top: 2px;
   }
   .speed-scale .reverse-tick { opacity: .6; color: var(--accent); }
+
+  /* ══════════════════════════════════════════════════════════════
+     RIGHT RAIL — unified Info / Legend / Mission container
+     ══════════════════════════════════════════════════════════════ */
+  .right-rail {
+    position: fixed; z-index: 14;
+    top: var(--s5); right: var(--s5);
+    width: 280px;
+    max-height: calc(100vh - 2 * var(--s5) - 120px);
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 20px 60px rgba(0,0,0,.5);
+    color: var(--text);
+    transition: width .24s cubic-bezier(.2,.8,.2,1), padding .24s cubic-bezier(.2,.8,.2,1);
+    overflow: hidden;
+  }
+  .right-rail.collapsed {
+    width: 24px;
+  }
+  .right-rail.collapsed .right-rail-tabs,
+  .right-rail.collapsed .right-rail-body { display: none; }
+  .right-rail-chevron {
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 24px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 0; color: var(--text-2);
+    cursor: pointer; padding: 0;
+    border-right: 1px solid var(--stroke);
+    z-index: 2;
+  }
+  .right-rail-chevron:hover { color: var(--text); background: rgba(255,255,255,.04); }
+  .right-rail-chevron svg { transition: transform .2s cubic-bezier(.2,.8,.2,1); }
+  .right-rail:not(.collapsed) .right-rail-chevron svg { transform: rotate(180deg); }
+
+  .right-rail-handle {
+    display: none;
+    width: 36px; height: 4px;
+    background: rgba(255,255,255,.3);
+    border-radius: 999px;
+    margin: 8px auto 4px;
+    flex: 0 0 auto;
+  }
+
+  .right-rail-tabs {
+    display: flex; gap: 4px;
+    padding: var(--s3) var(--s3) 0 calc(var(--s3) + 24px);
+    flex: 0 0 auto;
+  }
+  .right-rail-tab {
+    flex: 1;
+    background: transparent; border: 1px solid var(--stroke);
+    color: var(--text-2);
+    padding: 7px 10px; border-radius: 8px;
+    font: 500 11.5px var(--font-ui);
+    cursor: pointer; letter-spacing: -0.01em;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .right-rail-tab:hover { color: var(--text); border-color: var(--stroke-hi); background: rgba(255,255,255,.04); }
+  .right-rail-tab.active { background: var(--accent); color: #fff; border-color: transparent; }
+
+  .right-rail-body {
+    flex: 1 1 auto;
+    overflow-y: auto; overflow-x: hidden;
+    padding: var(--s3) calc(var(--s3)) var(--s3) calc(var(--s3) + 24px);
+  }
+  .right-rail-body::-webkit-scrollbar { width: 6px; }
+  .right-rail-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 3px; }
+
+  /* Override fixed positioning for panels inside the rail */
+  #rightRail .panel,
+  #rightRail #slingshotPanel {
+    position: static;
+    top: auto; right: auto; bottom: auto; left: auto;
+    width: auto; max-width: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    display: none;
+    transition: none;
+    min-width: 0; min-height: 0;
+    border-left: 0;
+  }
+  /* Tab visibility: only show the panel for the active tab */
+  #rightRail[data-tab="info"]    #info:not([hidden]),
+  #rightRail[data-tab="legend"]  #legendPanel:not([hidden]),
+  #rightRail[data-tab="mission"] #slingshotPanel { display: block; }
+  /* Info still uses .active for its entry animation elsewhere — inside the rail we
+     always allow it to render when the Info tab is active (fade handled by tab switch). */
+  #rightRail #info { opacity: 1; }
+  /* Defeat the outer collapsed panel chrome inside the rail */
+  #rightRail .panel.collapsed {
+    padding: 0 !important;
+    width: auto !important; height: auto !important;
+    min-width: 0; min-height: 0;
+  }
+  #rightRail .panel.collapsed > *:not(.panel-collapse) { display: revert; }
+  #rightRail .panel-collapse { display: none; }
+
+  /* Mission status chip (fire-and-forget) */
+  .mission-status-chip {
+    position: fixed; z-index: 15;
+    top: calc(var(--s5) + 56px); right: var(--s5);
+    padding: 7px 14px; border-radius: var(--radius-chip);
+    background: rgba(14,14,16,.88); border: 1px solid var(--stroke-hi);
+    color: var(--text); font: 600 11.5px var(--font-num);
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    opacity: 0; pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity .2s cubic-bezier(.2,.8,.2,1), transform .2s cubic-bezier(.2,.8,.2,1);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .mission-status-chip.visible { opacity: 1; transform: translateY(0); }
+
+  /* First-visit Mission tooltip (S3) */
+  .mission-hint-tooltip {
+    position: fixed; z-index: 20;
+    padding: 8px 12px;
+    background: rgba(14,14,16,.94);
+    border: 1px solid var(--stroke-hi);
+    border-radius: 10px;
+    color: var(--text);
+    font: 500 12px var(--font-ui);
+    letter-spacing: -0.01em;
+    pointer-events: none;
+    box-shadow: 0 12px 32px rgba(0,0,0,.6);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .24s cubic-bezier(.2,.8,.2,1), transform .24s cubic-bezier(.2,.8,.2,1);
+  }
+  .mission-hint-tooltip[hidden] { display: none; }
+  .mission-hint-tooltip.visible { opacity: 1; transform: translateY(0); }
+  .mission-hint-tooltip::after {
+    content: "";
+    position: absolute; right: 18px; bottom: -6px;
+    width: 10px; height: 10px;
+    background: rgba(14,14,16,.94);
+    border-right: 1px solid var(--stroke-hi);
+    border-bottom: 1px solid var(--stroke-hi);
+    transform: rotate(45deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mission-hint-tooltip { transition: opacity .1s linear; transform: none !important; }
+  }
+
+  /* S2 — left-rail accordion: animate collapse via max-height, not display:none */
+  .panel[data-collapsible] > *:not(.panel-collapse) {
+    transition: max-height 220ms cubic-bezier(.2,.8,.2,1), opacity 220ms cubic-bezier(.2,.8,.2,1);
+  }
+  .panel.collapsed > *:not(.panel-collapse) {
+    /* override the old display:none with animated max-height collapse */
+    display: block !important;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    pointer-events: none;
+  }
+  .panel:not(.collapsed) > *:not(.panel-collapse) {
+    max-height: 600px; opacity: 1;
+  }
+
+  /* Mobile: right rail becomes bottom sheet */
+  @media (max-width: 768px) {
+    .right-rail {
+      top: auto; right: 0; left: 0;
+      bottom: 0;
+      width: 100%; max-width: 100vw;
+      max-height: calc(100vh - 80px);
+      border-radius: 16px 16px 0 0;
+      transform: translateY(100%);
+      transition: transform .28s cubic-bezier(.2,.8,.2,1);
+      /* On mobile, the rail is hidden by default; .open reveals it. */
+    }
+    .right-rail.open { transform: translateY(0); }
+    .right-rail.collapsed { width: 100%; transform: translateY(100%); }
+    .right-rail-handle { display: block; }
+    .right-rail-chevron { display: none; }
+    .right-rail-tabs {
+      padding: 0 var(--s3);
+    }
+    .right-rail-body {
+      padding: var(--s3);
+      max-height: calc(100vh - 80px - 80px);
+    }
+    /* Info panel mobile override — neutralise old fixed rule inside rail */
+    #rightRail .info { display: none; }
+    #rightRail[data-tab="info"] #info { display: block; }
+  }
 </style>
 
 <script type="importmap">
@@ -1177,22 +1384,7 @@
 <!-- B.5 — Probe legend + live readout -->
 <div id="probeLegend" class="probe-legend"></div>
 
-<!-- B.3 — Legend panel -->
-<div class="panel legend" id="legendPanel" data-collapsible data-key="legend" hidden>
-  <h1>Legend</h1>
-  <div class="legend-row"><span class="swatch orbit"></span>Orbits <span class="legend-note">thin dotted blue ellipse</span></div>
-  <div class="legend-row"><span class="swatch trail"></span>Trails <span class="legend-note">fading swoosh matching body color</span></div>
-  <div class="legend-row"><span class="swatch" style="background:#ffaa66"></span>Voyager 1 trajectory</div>
-  <div class="legend-row"><span class="swatch" style="background:#88ccff"></span>Voyager 2 trajectory</div>
-  <div class="legend-row"><span class="swatch" style="background:#ffee99"></span>Cassini trajectory</div>
-  <div class="legend-row"><span class="swatch" style="background:#ff99cc"></span>New Horizons trajectory</div>
-  <div class="legend-row"><span class="swatch" style="background:#c0ff80"></span>JWST trajectory</div>
-  <div class="legend-row"><span class="swatch" style="background:#777;opacity:.6"></span>Asteroid belt <span class="legend-note">Mars–Jupiter</span></div>
-  <div class="legend-row"><span class="swatch" style="background:#777;opacity:.4"></span>Kuiper belt <span class="legend-note">past Neptune</span></div>
-  <div class="legend-row"><span class="swatch" style="background:#ccb388"></span>Saturn's rings</div>
-  <div class="legend-row"><span class="swatch" style="background:#bbb"></span>Moons <span class="legend-note">small spheres near parent planet</span></div>
-  <div class="legend-row"><span class="swatch" style="background:#ffcc88"></span>Dropped rocks <span class="legend-note">warm-gold with trail</span></div>
-</div>
+<!-- B.3 — Legend panel (relocated inside #rightRail; removed from here) -->
 
 <!-- Pale Blue Dot overlay -->
 <div class="pbd-overlay" id="pbdOverlay">
@@ -1218,37 +1410,15 @@
 <!-- Slingshot HUD chip -->
 <button id="slingshotChip" class="slingshot-chip" type="button" aria-label="Try a Mission — slingshot challenge">🚀 Try a Mission</button>
 
-<!-- Slingshot challenge panel -->
-<div id="slingshotPanel" class="slingshot-panel" role="dialog" aria-label="Slingshot Challenge">
-  <h2>🚀 Slingshot Challenge</h2>
-  <div class="slingshot-presets">
-    <button class="slingshot-preset" data-preset="earth-mars">Earth → Mars<span class="best" data-best="earth-mars">—</span></button>
-    <button class="slingshot-preset" data-preset="earth-jupiter">Earth → Jupiter<span class="best" data-best="earth-jupiter">—</span></button>
-    <button class="slingshot-preset" data-preset="voyager">Voyager Grand Tour<span class="best" data-best="voyager">—</span></button>
-  </div>
-  <div class="slingshot-row">
-    <label for="slingLaunch">Launch from</label>
-    <select id="slingLaunch"></select>
-  </div>
-  <div class="slingshot-row">
-    <label for="slingTarget">Target</label>
-    <select id="slingTarget"></select>
-  </div>
-  <div class="slingshot-row">
-    <label for="slingAngle">Angle</label>
-    <input type="range" id="slingAngle" min="0" max="360" step="1" value="90" />
-    <span class="val" id="slingAngleVal">90°</span>
-  </div>
-  <div class="slingshot-row">
-    <label for="slingSpeed">Speed</label>
-    <input type="range" id="slingSpeed" min="3" max="60" step="0.5" value="12" />
-    <span class="val" id="slingSpeedVal">12 km/s</span>
-  </div>
-  <div class="slingshot-actions">
-    <button class="slingshot-btn" id="slingClose" type="button">Close</button>
-    <button class="slingshot-btn primary" id="slingLaunchBtn" type="button">Launch</button>
-  </div>
+<!-- Mission status chip (fire-and-forget) -->
+<div id="missionStatusChip" class="mission-status-chip" aria-live="polite"></div>
+
+<!-- First-visit Mission tooltip (S3) -->
+<div id="missionHintTooltip" class="mission-hint-tooltip" role="tooltip" hidden>
+  Tap here to launch a probe
 </div>
+
+<!-- Slingshot challenge panel (relocated inside #rightRail; removed from here) -->
 
 <!-- Slingshot outcome toast -->
 <div id="slingToast" class="sling-toast"></div>
@@ -1300,21 +1470,85 @@
   </div>
 </div>
 
-<div class="panel info" id="info" data-collapsible data-key="info">
-  <h2 id="info-name">—</h2>
-  <div class="row"><span class="l">Diameter</span><span class="v" id="info-d">—</span></div>
-  <div class="row"><span class="l">Distance from Sun</span><span class="v" id="info-a">—</span></div>
-  <div class="row"><span class="l">Orbital period</span><span class="v" id="info-p">—</span></div>
-  <div class="row"><span class="l">Rotation period</span><span class="v" id="info-r">—</span></div>
-  <div class="row"><span class="l">Axial tilt</span><span class="v" id="info-t">—</span></div>
-  <div class="row"><span class="l">Mass</span><span class="v" id="info-m">—</span></div>
-  <div class="row"><span class="l">Gravity</span><span class="v" id="info-g">—</span></div>
-  <div class="row"><span class="l">Mean temp</span><span class="v" id="info-temp">—</span></div>
-  <div class="row"><span class="l">Atmosphere</span><span class="v" id="info-atmo" style="font-size:11px;text-align:right;max-width:180px;">—</span></div>
-  <div class="row"><span class="l">Moons</span><span class="v" id="info-moons">—</span></div>
-  <div class="row"><span class="l">Discovered</span><span class="v" id="info-disc">—</span></div>
-  <p id="info-dyk" style="margin:var(--s3) 0 0;padding-top:var(--s3);border-top:1px solid var(--stroke);font-size:11px;color:var(--text-2);line-height:1.5;font-style:italic;"></p>
-</div>
+<!-- ═══ RIGHT RAIL — Info / Legend / Mission tabbed container ═══ -->
+<aside id="rightRail" class="right-rail" data-tab="info" aria-label="Contextual panels">
+  <button id="rightRailChevron" class="right-rail-chevron" type="button" aria-label="Collapse rail" title="Collapse / expand rail">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+  <div class="right-rail-handle" aria-hidden="true"></div>
+  <div class="right-rail-tabs" role="tablist" aria-label="Right-rail sections">
+    <button type="button" role="tab" aria-selected="true"  id="tabInfo"    class="right-rail-tab active" data-tab="info"    aria-controls="info">Info</button>
+    <button type="button" role="tab" aria-selected="false" id="tabLegend"  class="right-rail-tab"        data-tab="legend"  aria-controls="legendPanel">Legend</button>
+    <button type="button" role="tab" aria-selected="false" id="tabMission" class="right-rail-tab"        data-tab="mission" aria-controls="slingshotPanel">Mission</button>
+  </div>
+  <div class="right-rail-body">
+    <!-- INFO TAB -->
+    <div class="panel info" id="info" data-collapsible data-key="info" role="tabpanel" aria-labelledby="tabInfo">
+      <h2 id="info-name">—</h2>
+      <div class="row"><span class="l">Diameter</span><span class="v" id="info-d">—</span></div>
+      <div class="row"><span class="l">Distance from Sun</span><span class="v" id="info-a">—</span></div>
+      <div class="row"><span class="l">Orbital period</span><span class="v" id="info-p">—</span></div>
+      <div class="row"><span class="l">Rotation period</span><span class="v" id="info-r">—</span></div>
+      <div class="row"><span class="l">Axial tilt</span><span class="v" id="info-t">—</span></div>
+      <div class="row"><span class="l">Mass</span><span class="v" id="info-m">—</span></div>
+      <div class="row"><span class="l">Gravity</span><span class="v" id="info-g">—</span></div>
+      <div class="row"><span class="l">Mean temp</span><span class="v" id="info-temp">—</span></div>
+      <div class="row"><span class="l">Atmosphere</span><span class="v" id="info-atmo" style="font-size:11px;text-align:right;max-width:180px;">—</span></div>
+      <div class="row"><span class="l">Moons</span><span class="v" id="info-moons">—</span></div>
+      <div class="row"><span class="l">Discovered</span><span class="v" id="info-disc">—</span></div>
+      <p id="info-dyk" style="margin:var(--s3) 0 0;padding-top:var(--s3);border-top:1px solid var(--stroke);font-size:11px;color:var(--text-2);line-height:1.5;font-style:italic;"></p>
+    </div>
+
+    <!-- LEGEND TAB (B.3) -->
+    <div class="panel legend" id="legendPanel" data-collapsible data-key="legend" role="tabpanel" aria-labelledby="tabLegend" hidden>
+      <h1>Legend</h1>
+      <div class="legend-row"><span class="swatch orbit"></span>Orbits <span class="legend-note">thin dotted blue ellipse</span></div>
+      <div class="legend-row"><span class="swatch trail"></span>Trails <span class="legend-note">fading swoosh matching body color</span></div>
+      <div class="legend-row"><span class="swatch" style="background:#ffaa66"></span>Voyager 1 trajectory</div>
+      <div class="legend-row"><span class="swatch" style="background:#88ccff"></span>Voyager 2 trajectory</div>
+      <div class="legend-row"><span class="swatch" style="background:#ffee99"></span>Cassini trajectory</div>
+      <div class="legend-row"><span class="swatch" style="background:#ff99cc"></span>New Horizons trajectory</div>
+      <div class="legend-row"><span class="swatch" style="background:#c0ff80"></span>JWST trajectory</div>
+      <div class="legend-row"><span class="swatch" style="background:#777;opacity:.6"></span>Asteroid belt <span class="legend-note">Mars–Jupiter</span></div>
+      <div class="legend-row"><span class="swatch" style="background:#777;opacity:.4"></span>Kuiper belt <span class="legend-note">past Neptune</span></div>
+      <div class="legend-row"><span class="swatch" style="background:#ccb388"></span>Saturn's rings</div>
+      <div class="legend-row"><span class="swatch" style="background:#bbb"></span>Moons <span class="legend-note">small spheres near parent planet</span></div>
+      <div class="legend-row"><span class="swatch" style="background:#ffcc88"></span>Dropped rocks <span class="legend-note">warm-gold with trail</span></div>
+    </div>
+
+    <!-- MISSION TAB (slingshot challenge) -->
+    <div id="slingshotPanel" class="slingshot-panel" role="tabpanel" aria-labelledby="tabMission" aria-label="Slingshot Challenge">
+      <h2>🚀 Slingshot Challenge</h2>
+      <div class="slingshot-presets">
+        <button class="slingshot-preset" data-preset="earth-mars">Earth → Mars<span class="best" data-best="earth-mars">—</span></button>
+        <button class="slingshot-preset" data-preset="earth-jupiter">Earth → Jupiter<span class="best" data-best="earth-jupiter">—</span></button>
+        <button class="slingshot-preset" data-preset="voyager">Voyager Grand Tour<span class="best" data-best="voyager">—</span></button>
+      </div>
+      <div class="slingshot-row">
+        <label for="slingLaunch">Launch from</label>
+        <select id="slingLaunch"></select>
+      </div>
+      <div class="slingshot-row">
+        <label for="slingTarget">Target</label>
+        <select id="slingTarget"></select>
+      </div>
+      <div class="slingshot-row">
+        <label for="slingAngle">Angle</label>
+        <input type="range" id="slingAngle" min="0" max="360" step="1" value="90" />
+        <span class="val" id="slingAngleVal">90°</span>
+      </div>
+      <div class="slingshot-row">
+        <label for="slingSpeed">Speed</label>
+        <input type="range" id="slingSpeed" min="3" max="60" step="0.5" value="12" />
+        <span class="val" id="slingSpeedVal">12 km/s</span>
+      </div>
+      <div class="slingshot-actions">
+        <button class="slingshot-btn" id="slingClose" type="button">Close</button>
+        <button class="slingshot-btn primary" id="slingLaunchBtn" type="button">Launch</button>
+      </div>
+    </div>
+  </div>
+</aside>
 
 <script type="module">
 import * as THREE from "three";
@@ -3916,11 +4150,17 @@ buildScene().then(() => {
   document.getElementById("loader").classList.add("gone");
 });
 
-// Legend panel toggle
+// Legend panel toggle — also drives the right-rail Legend tab
 function toggleLegendPanel() {
   const p = document.getElementById("legendPanel");
   if (!p) return;
   p.hidden = !p.hidden;
+  // Drive the right rail so the visible tab matches
+  if (!p.hidden && typeof setRightRailTab === "function") {
+    setRightRailTab("legend");
+    if (typeof setRightRailCollapsed === "function") setRightRailCollapsed(false);
+    if (typeof setRightRailMobileOpen === "function") setRightRailMobileOpen(true);
+  }
 }
 document.getElementById("legendBtn")?.addEventListener("click", toggleLegendPanel);
 
@@ -4262,11 +4502,17 @@ function _auToWorldUnits(auPt) {
 function openSlingshotPanel() {
   const panel = document.getElementById("slingshotPanel");
   if (!panel) return;
-  panel.classList.add("open");
+  panel.classList.add("open"); // preserved for legacy test assertions (four-features-smoke SS-2/SS-3)
   SLINGSHOT.open = true;
   try { localStorage.setItem(SSS_KEYS.slingshotChipSeen, "1"); } catch (_) {}
   const chip = document.getElementById("slingshotChip");
   if (chip) chip.classList.remove("pulse");
+  // Dismiss first-visit hint if still live
+  _dismissMissionHint();
+  // Route into the right-rail: expand + switch to Mission tab
+  if (typeof setRightRailCollapsed === "function") setRightRailCollapsed(false);
+  if (typeof setRightRailTab === "function") setRightRailTab("mission");
+  if (typeof setRightRailMobileOpen === "function") setRightRailMobileOpen(true);
   updateLeaderboardUI();
   schedulePreview();
 }
@@ -4276,6 +4522,10 @@ function closeSlingshotPanel() {
   panel.classList.remove("open");
   SLINGSHOT.open = false;
   _removeSlingshotPreview();
+  // Return to Info tab; collapse rail per spec.
+  if (typeof setRightRailTab === "function") setRightRailTab("info");
+  if (typeof setRightRailCollapsed === "function") setRightRailCollapsed(true);
+  if (typeof setRightRailMobileOpen === "function") setRightRailMobileOpen(false);
 }
 
 function _removeSlingshotPreview() {
@@ -4416,7 +4666,14 @@ function launchSlingshotProbe() {
   SLINGSHOT.probeTraceLine = tl;
   SLINGSHOT.probeTraceIdx = 0;
 
-  closeSlingshotPanel();
+  // Fire-and-forget: collapse panel ('.open' is removed), collapse rail, show status chip.
+  const panel = document.getElementById("slingshotPanel");
+  if (panel) panel.classList.remove("open");
+  SLINGSHOT.open = false;
+  _removeSlingshotPreview();
+  if (typeof setRightRailCollapsed === "function") setRightRailCollapsed(true);
+  if (typeof setRightRailMobileOpen === "function") setRightRailMobileOpen(false);
+  if (typeof _showMissionStatusChip === "function") _showMissionStatusChip();
   showSlingshotToast(`Probe launched from ${launch} → ${target}`, 2800);
 }
 
@@ -4519,6 +4776,7 @@ function _onSlingshotHit() {
     setTimeout(() => showSlingshotToast(`🏆 New best — ${launch} → ${target} in ${days.toFixed(0)} days`, 4500), 3000);
   }
   _cleanupSlingshotProbe();
+  try { _hideMissionStatusChip(); } catch (_) {}
   updateLeaderboardUI();
 }
 function _onSlingshotMiss() {
@@ -4526,6 +4784,7 @@ function _onSlingshotMiss() {
   const day = SLINGSHOT.probeBestMissDay;
   showSlingshotToast(`Closest approach: ${closestKm.toLocaleString(undefined, {maximumFractionDigits:0})} km, at day ${day.toFixed(0)}`, 5500);
   _cleanupSlingshotProbe();
+  try { _hideMissionStatusChip(); } catch (_) {}
 }
 
 /* Slingshot presets — load sensible values */
@@ -5025,6 +5284,10 @@ document.getElementById("walkStartBtn")?.addEventListener("click", () => {
     if (SLINGSHOT.probeMesh && !paused) {
       try { updateSlingshotProbe(dt, speedMultiplier); } catch (e) { /* swallow */ }
     }
+    // Update launch-vector arrow (cheap — early-outs when not visible)
+    try { _updateLaunchArrow(); } catch (_) {}
+    // Update the fire-and-forget mission status chip while a probe is active
+    try { _updateMissionStatusChip(); } catch (_) {}
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -5043,11 +5306,310 @@ document.getElementById("walkStartBtn")?.addEventListener("click", () => {
   setTimeout(check, 1200);
 })();
 
+/* ═══════════════════════════════════════════════════════════════════
+   RIGHT RAIL — tabs, collapse, mobile sheet, mission hint, status chip,
+   and Phase-2 launch-vector arrow. Defined at module scope so
+   open/closeSlingshotPanel() and toggleLegendPanel() can drive it.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const RAIL_KEYS = {
+  collapsed:       "sss.v1.right_rail_collapsed",
+  missionHintSeen: "sss.v1.mission_hint_seen",
+};
+
+function setRightRailTab(tab) {
+  const rail = document.getElementById("rightRail");
+  if (!rail) return;
+  rail.dataset.tab = tab;
+  rail.querySelectorAll(".right-rail-tab").forEach(btn => {
+    const isActive = btn.dataset.tab === tab;
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+}
+function setRightRailCollapsed(collapsed) {
+  const rail = document.getElementById("rightRail");
+  if (!rail) return;
+  rail.classList.toggle("collapsed", !!collapsed);
+  const chev = document.getElementById("rightRailChevron");
+  if (chev) chev.setAttribute("aria-label", collapsed ? "Expand rail" : "Collapse rail");
+  try { localStorage.setItem(RAIL_KEYS.collapsed, collapsed ? "1" : "0"); } catch (_) {}
+}
+function setRightRailMobileOpen(open) {
+  const rail = document.getElementById("rightRail");
+  if (!rail) return;
+  // CSS :has() not universal — just toggle .open on mobile widths
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    rail.classList.toggle("open", !!open);
+    if (open) rail.classList.remove("collapsed");
+  }
+}
+
+function initRightRail() {
+  const rail = document.getElementById("rightRail");
+  if (!rail) return;
+  // Restore collapse state
+  let persisted = null;
+  try { persisted = localStorage.getItem(RAIL_KEYS.collapsed); } catch (_) {}
+  if (persisted === "1") rail.classList.add("collapsed");
+
+  // Chevron click
+  const chev = document.getElementById("rightRailChevron");
+  if (chev) chev.addEventListener("click", () => {
+    setRightRailCollapsed(!rail.classList.contains("collapsed"));
+  });
+
+  // Tab clicks
+  rail.querySelectorAll(".right-rail-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
+      setRightRailTab(tab);
+      if (rail.classList.contains("collapsed")) setRightRailCollapsed(false);
+      // Legend tab: un-hide the legend panel so it renders
+      if (tab === "legend") {
+        const lp = document.getElementById("legendPanel");
+        if (lp && lp.hidden) lp.hidden = false;
+      }
+    });
+  });
+
+  // Tap-outside to close on mobile
+  document.addEventListener("click", (e) => {
+    if (!window.matchMedia("(max-width: 768px)").matches) return;
+    if (!rail.classList.contains("open")) return;
+    if (rail.contains(e.target)) return;
+    // Don't close if the click was the chip (it opens)
+    if (e.target.closest && e.target.closest("#slingshotChip")) return;
+    setRightRailMobileOpen(false);
+  });
+
+  // Swipe-down on handle (mobile) — simple threshold
+  const handle = rail.querySelector(".right-rail-handle");
+  if (handle) {
+    let startY = null;
+    handle.addEventListener("touchstart", (e) => {
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+    handle.addEventListener("touchmove", (e) => {
+      if (startY === null) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 60) {
+        setRightRailMobileOpen(false);
+        startY = null;
+      }
+    }, { passive: true });
+    handle.addEventListener("touchend", () => { startY = null; });
+  }
+}
+
+/* ─── First-visit Mission tooltip (S3) ─────────────────────────── */
+function _showMissionHint() {
+  if (window.__test && window.__test.suppressMissionHint === true) return;
+  let seen = null;
+  try { seen = localStorage.getItem(RAIL_KEYS.missionHintSeen); } catch (_) {}
+  if (seen === "1") return;
+  const tip = document.getElementById("missionHintTooltip");
+  const chip = document.getElementById("slingshotChip");
+  if (!tip || !chip) return;
+  // Position above the chip, right-aligned to it
+  const rect = chip.getBoundingClientRect();
+  tip.hidden = false;
+  tip.style.right = Math.max(8, window.innerWidth - rect.right) + "px";
+  tip.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+  // Force reflow then add .visible for transition
+  // eslint-disable-next-line no-unused-expressions
+  tip.offsetWidth;
+  tip.classList.add("visible");
+  // Auto-dismiss after 4s
+  tip._timer = setTimeout(_dismissMissionHint, 4000);
+}
+function _dismissMissionHint() {
+  const tip = document.getElementById("missionHintTooltip");
+  if (!tip) return;
+  if (tip._timer) { clearTimeout(tip._timer); tip._timer = null; }
+  tip.classList.remove("visible");
+  tip.hidden = true;
+  try { localStorage.setItem(RAIL_KEYS.missionHintSeen, "1"); } catch (_) {}
+}
+
+/* ─── Mission status chip (fire-and-forget) ────────────────────── */
+function _showMissionStatusChip() {
+  const chip = document.getElementById("missionStatusChip");
+  if (!chip) return;
+  chip.classList.add("visible");
+}
+function _hideMissionStatusChip() {
+  const chip = document.getElementById("missionStatusChip");
+  if (!chip) return;
+  chip.classList.remove("visible");
+  chip.textContent = "";
+}
+function _updateMissionStatusChip() {
+  const chip = document.getElementById("missionStatusChip");
+  if (!chip) return;
+  if (!SLINGSHOT.probeMesh || !SLINGSHOT.probePosAU || !SLINGSHOT.probeTargetName) {
+    _hideMissionStatusChip();
+    return;
+  }
+  const targetAU = bodyPositionAU(SLINGSHOT.probeTargetName);
+  if (!targetAU) return;
+  const dx = SLINGSHOT.probePosAU.x - targetAU.x;
+  const dy = SLINGSHOT.probePosAU.y - targetAU.y;
+  const dz = SLINGSHOT.probePosAU.z - targetAU.z;
+  const distAU = Math.hypot(dx, dy, dz);
+  const days = Math.max(0, SLINGSHOT.probeAge | 0);
+  chip.textContent = `\u23F1 ${days}d  ·  Probe: ${distAU.toFixed(2)} AU from ${SLINGSHOT.probeTargetName}`;
+  _showMissionStatusChip();
+}
+
+/* ─── Launch-vector arrow (Phase 2) ────────────────────────────── */
+const LAUNCH_ARROW = {
+  group: null,
+  shaft: null,
+  tipCone: null,
+  dragging: false,
+};
+const LAUNCH_ARROW_SPEED_SCALE = 0.6; // world units per km/s at compressed scale
+
+function _ensureLaunchArrow() {
+  if (LAUNCH_ARROW.group || !scene || !THREE) return;
+  const group = new THREE.Group();
+  group.name = "launchVectorArrow";
+  // Shaft — a simple line from origin to +X
+  const shaftGeo = new THREE.BufferGeometry();
+  shaftGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0,0,0, 1,0,0]), 3));
+  const shaftMat = new THREE.LineBasicMaterial({ color: 0x66ddff, linewidth: 2, transparent: true, opacity: 0.9 });
+  const shaft = new THREE.Line(shaftGeo, shaftMat);
+  shaft.name = "launchArrowShaft";
+  group.add(shaft);
+  // Cone tip
+  const coneGeo = new THREE.ConeGeometry(0.4, 1.1, 12);
+  const coneMat = new THREE.MeshBasicMaterial({ color: 0x66ddff, transparent: true, opacity: 0.95 });
+  const cone = new THREE.Mesh(coneGeo, coneMat);
+  cone.rotation.z = -Math.PI / 2;
+  cone.position.set(1, 0, 0); // will be repositioned per frame
+  cone.name = "launchArrowTip";
+  group.add(cone);
+  group.visible = false;
+  scene.add(group);
+  LAUNCH_ARROW.group = group;
+  LAUNCH_ARROW.shaft = shaft;
+  LAUNCH_ARROW.tipCone = cone;
+  window.__launchVectorArrow = group;
+  document.getElementById("rightRail")?.setAttribute("data-arrow-ready", "1");
+}
+
+function _updateLaunchArrow() {
+  if (!LAUNCH_ARROW.group) return;
+  const rail = document.getElementById("rightRail");
+  const isMissionTab = rail && rail.dataset.tab === "mission" && !rail.classList.contains("collapsed");
+  const probeInFlight = !!SLINGSHOT.probeMesh;
+  const shouldShow = isMissionTab && !probeInFlight;
+  LAUNCH_ARROW.group.visible = shouldShow;
+  if (!shouldShow) return;
+  const launchSel = document.getElementById("slingLaunch");
+  const launchName = launchSel?.value || "Earth";
+  const launchAU = bodyPositionAU(launchName);
+  if (!launchAU) return;
+  const anchor = _auToWorldUnits(launchAU);
+  LAUNCH_ARROW.group.position.set(anchor.x, anchor.y, anchor.z);
+  const angleDeg = parseFloat(document.getElementById("slingAngle")?.value || "90");
+  const speedKms = parseFloat(document.getElementById("slingSpeed")?.value || "12");
+  const rad = angleDeg * Math.PI / 180;
+  // Direction in ecliptic (world Y=0 plane): X = cos(rad), Z = sin(rad) (world swizzle)
+  const dirX = Math.cos(rad);
+  const dirZ = Math.sin(rad);
+  const angleWorld = Math.atan2(dirZ, dirX);
+  LAUNCH_ARROW.group.rotation.set(0, -angleWorld, 0); // rotate around Y to align +X with direction
+  const length = Math.max(1.5, speedKms * LAUNCH_ARROW_SPEED_SCALE);
+  // Shaft is a line from 0 to (length, 0, 0)
+  const shaftGeo = LAUNCH_ARROW.shaft.geometry;
+  const pos = shaftGeo.attributes.position.array;
+  pos[3] = length; pos[4] = 0; pos[5] = 0;
+  shaftGeo.attributes.position.needsUpdate = true;
+  // Tip at end of shaft
+  LAUNCH_ARROW.tipCone.position.set(length, 0, 0);
+}
+
+/* Drag — simple ecliptic plane raycast */
+function _initLaunchArrowDrag() {
+  const canv = document.getElementById("canvas");
+  if (!canv) return;
+  const ray = new THREE.Raycaster();
+  const planeNormal = new THREE.Vector3(0, 1, 0);
+  const plane = new THREE.Plane(planeNormal, 0);
+  const hitPoint = new THREE.Vector3();
+  const ndc = new THREE.Vector2();
+  function screenToPlane(clientX, clientY) {
+    const r = canv.getBoundingClientRect();
+    ndc.x = ((clientX - r.left) / r.width) * 2 - 1;
+    ndc.y = -((clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(ndc, camera);
+    if (ray.ray.intersectPlane(plane, hitPoint)) return hitPoint.clone();
+    return null;
+  }
+  function nearArrowTip(clientX, clientY) {
+    if (!LAUNCH_ARROW.group || !LAUNCH_ARROW.group.visible) return false;
+    const tip = new THREE.Vector3();
+    LAUNCH_ARROW.tipCone.getWorldPosition(tip);
+    tip.project(camera);
+    const r = canv.getBoundingClientRect();
+    const tipX = (tip.x * 0.5 + 0.5) * r.width + r.left;
+    const tipY = (-tip.y * 0.5 + 0.5) * r.height + r.top;
+    const dx = clientX - tipX, dy = clientY - tipY;
+    return Math.hypot(dx, dy) < 28;
+  }
+  canv.addEventListener("pointerdown", (e) => {
+    if (!nearArrowTip(e.clientX, e.clientY)) return;
+    LAUNCH_ARROW.dragging = true;
+    canv.style.cursor = "grabbing";
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+  canv.addEventListener("pointermove", (e) => {
+    if (LAUNCH_ARROW.group && LAUNCH_ARROW.group.visible && nearArrowTip(e.clientX, e.clientY)) {
+      canv.style.cursor = "grab";
+    } else if (!LAUNCH_ARROW.dragging) {
+      // let normal grab/default handler set cursor elsewhere
+    }
+    if (!LAUNCH_ARROW.dragging) return;
+    const hit = screenToPlane(e.clientX, e.clientY);
+    if (!hit) return;
+    const anchor = LAUNCH_ARROW.group.position;
+    const dx = hit.x - anchor.x;
+    const dz = hit.z - anchor.z;
+    const lengthWorld = Math.hypot(dx, dz);
+    const angleWorld = Math.atan2(dz, dx);
+    // Convert back to slingAngle frame (angle measured CCW from +X)
+    let angleDeg = angleWorld * 180 / Math.PI;
+    if (angleDeg < 0) angleDeg += 360;
+    const speedKms = Math.max(3, Math.min(60, lengthWorld / LAUNCH_ARROW_SPEED_SCALE));
+    const a = document.getElementById("slingAngle");
+    const s = document.getElementById("slingSpeed");
+    if (a) { a.value = angleDeg.toFixed(0); a.dispatchEvent(new Event("input", { bubbles: true })); }
+    if (s) { s.value = speedKms.toFixed(1); s.dispatchEvent(new Event("input", { bubbles: true })); }
+  });
+  canv.addEventListener("pointerup", () => {
+    if (LAUNCH_ARROW.dragging) {
+      LAUNCH_ARROW.dragging = false;
+      canv.style.cursor = "grab";
+    }
+  });
+}
+
 // Initialize feature UIs — defer until scene is built.
 function _deferredInitFourFeatures() {
   try { initSlingshotUI(); } catch (e) { console.error("slingshot init:", e); }
   try { initSkyEvents(); } catch (e) { console.error("skyEvents init:", e); }
   try { initFirstClickWonder(); } catch (e) { console.error("firstClick init:", e); }
+  try { initRightRail(); } catch (e) { console.error("rightRail init:", e); }
+  try { _ensureLaunchArrow(); _initLaunchArrowDrag(); } catch (e) { console.error("launchArrow init:", e); }
+  // Show the Mission first-visit hint after a short delay once UI is ready
+  try { setTimeout(_showMissionHint, 1200); } catch (_) {}
+  // Dismiss hint if the chip is clicked (in addition to openSlingshotPanel dismissing it)
+  try {
+    document.getElementById("slingshotChip")?.addEventListener("click", _dismissMissionHint, { once: false });
+  } catch (_) {}
 }
 // Hook into document-ready. The main buildScene().then(...) runs later — defer
 // features until the simulation's bodyObjects is populated.
@@ -5168,6 +5730,9 @@ window.__test = {
   // on the window it creates (via initScript). If it's true before initFirstClickWonder
   // runs, the animation won't fire.
   suppressFirstClick: false,
+  // If true (set via addInitScript before page load) the Mission first-visit
+  // tooltip (S3) is skipped and localStorage is not written.
+  suppressMissionHint: false,
   get activeLoops() { return _activeLoops; },
   setSimTime(t) { setSimTime(t); return simDays; },
   skyEvents() {
