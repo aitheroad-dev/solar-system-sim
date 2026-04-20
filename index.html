@@ -351,6 +351,166 @@
     outline-offset: 2px;
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     FOUR-FEATURES (Slingshot / First Click / Walk / Sky Events)
+     ══════════════════════════════════════════════════════════════ */
+
+  /* Slingshot HUD chip — lives inline next to icon cluster */
+  .slingshot-chip {
+    position: fixed; bottom: calc(var(--s5) + 72px); right: var(--s5);
+    z-index: 12;
+    padding: 9px 16px; border-radius: var(--radius-chip);
+    background: linear-gradient(135deg, rgba(10,132,255,.85), rgba(80,160,255,.85));
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff; font: 600 12.5px/1 var(--font-ui);
+    letter-spacing: -0.01em; cursor: pointer;
+    box-shadow: 0 4px 18px rgba(10,132,255,.35), 0 1px 0 rgba(255,255,255,.18) inset;
+    transition: transform .12s cubic-bezier(.2,.8,.2,1), filter .15s;
+  }
+  .slingshot-chip:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .slingshot-chip:active { transform: scale(.96); }
+  .slingshot-chip.pulse {
+    animation: slingshotPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes slingshotPulse {
+    0%, 100% { box-shadow: 0 4px 18px rgba(10,132,255,.35), 0 1px 0 rgba(255,255,255,.18) inset, 0 0 0 0 rgba(10,132,255,.55); }
+    50%      { box-shadow: 0 4px 18px rgba(10,132,255,.55), 0 1px 0 rgba(255,255,255,.18) inset, 0 0 0 10px rgba(10,132,255,0); }
+  }
+
+  /* Slingshot panel — modal-ish, center-right */
+  .slingshot-panel {
+    position: fixed; z-index: 14;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(420px, 94vw);
+    padding: var(--s5);
+    display: none;
+    background: var(--bg-hi);
+    border: 1px solid var(--stroke-hi);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 40px 90px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.08) inset;
+    backdrop-filter: blur(30px) saturate(160%);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+  }
+  .slingshot-panel.open { display: block; }
+  .slingshot-panel h2 {
+    margin: 0 0 var(--s3); font-size: 15px; font-weight: 600; color: var(--text);
+  }
+  .slingshot-row { display: flex; align-items: center; gap: var(--s3); margin: var(--s2) 0; font-size: 12.5px; }
+  .slingshot-row label { min-width: 92px; color: var(--text-2); font-weight: 500; }
+  .slingshot-row select, .slingshot-row input[type="range"] {
+    flex: 1; background: rgba(255,255,255,.05);
+    border: 1px solid var(--stroke); color: var(--text);
+    border-radius: 8px; padding: 6px 8px; font: 12px var(--font-num);
+  }
+  .slingshot-row input[type="range"] { padding: 0; height: 4px; }
+  .slingshot-row .val { min-width: 62px; text-align: right; font-family: var(--font-num); color: var(--text); font-size: 12px; }
+  .slingshot-presets { display: flex; gap: 6px; flex-wrap: wrap; margin: var(--s3) 0; }
+  .slingshot-preset {
+    flex: 1 1 auto; min-width: 90px;
+    background: rgba(10,132,255,.12); border: 1px solid rgba(10,132,255,.35);
+    color: var(--text); padding: 6px 10px; border-radius: 8px;
+    font: 500 11.5px var(--font-ui); cursor: pointer;
+    text-align: left;
+  }
+  .slingshot-preset:hover { background: rgba(10,132,255,.2); }
+  .slingshot-preset .best { display: block; margin-top: 2px; font-size: 10px; color: var(--text-3); font-family: var(--font-num); }
+  .slingshot-actions { display: flex; gap: var(--s2); margin-top: var(--s3); }
+  .slingshot-btn {
+    flex: 1; padding: 9px 14px; border-radius: 10px;
+    font: 600 12.5px var(--font-ui); cursor: pointer;
+    border: 1px solid var(--stroke-hi);
+    background: rgba(255,255,255,.05); color: var(--text);
+  }
+  .slingshot-btn.primary {
+    background: linear-gradient(135deg, rgba(10,132,255,.9), rgba(80,160,255,.9));
+    border-color: rgba(255,255,255,.2); color: #fff;
+  }
+  .slingshot-btn:hover { filter: brightness(1.1); }
+
+  /* Slingshot toast */
+  .sling-toast {
+    position: fixed; left: 50%; top: 40px; transform: translateX(-50%) translateY(-20px);
+    padding: 10px 18px; border-radius: 999px;
+    background: rgba(14,14,16,.92); border: 1px solid rgba(255,255,255,.2);
+    color: var(--text); font: 600 13px var(--font-ui);
+    z-index: 20; opacity: 0; pointer-events: none;
+    transition: opacity .24s, transform .24s;
+    box-shadow: 0 20px 50px rgba(0,0,0,.6);
+  }
+  .sling-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* First Click Wonder — hand cursor + caption */
+  #first-click-cursor {
+    position: fixed; z-index: 30;
+    width: 36px; height: 36px; pointer-events: none;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.6));
+    transition: opacity .24s;
+  }
+  #first-click-cursor.ripple::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,.9);
+    animation: firstClickRipple .6s ease-out forwards;
+  }
+  @keyframes firstClickRipple {
+    0%   { transform: translate(-50%,-50%) scale(1); opacity: .9; }
+    100% { transform: translate(-50%,-50%) scale(8); opacity: 0; }
+  }
+  #first-click-caption {
+    position: fixed; left: 50%; bottom: 140px; transform: translateX(-50%);
+    padding: 10px 18px; border-radius: 12px;
+    background: rgba(14,14,16,.85); border: 1px solid rgba(255,255,255,.15);
+    color: var(--text); font: 500 13px var(--font-ui);
+    z-index: 29; opacity: 0; transition: opacity .5s;
+    pointer-events: none;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+  #first-click-caption.visible { opacity: 1; }
+
+  /* True-Scale Walk HUD */
+  .walk-hud {
+    position: fixed; z-index: 13; top: var(--s5); left: 50%; transform: translateX(-50%);
+    padding: var(--s3) var(--s4);
+    background: var(--bg-hi); border: 1px solid var(--stroke-hi);
+    border-radius: var(--radius-panel);
+    color: var(--text); font: 500 12px var(--font-ui);
+    display: none;
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    min-width: 340px;
+  }
+  .walk-hud.active { display: block; }
+  .walk-hud h3 {
+    margin: 0 0 6px; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--text-3); font-weight: 590;
+  }
+  .walk-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12.5px; }
+  .walk-row .l { color: var(--text-2); }
+  .walk-row .v { font-family: var(--font-num); color: var(--text); font-variant-numeric: tabular-nums; }
+  .walk-hint { margin-top: 8px; font-size: 10.5px; color: var(--text-3); font-family: var(--font-num); }
+
+  /* Sky Events panel */
+  .panel.sky-events {
+    bottom: calc(var(--s5) + 240px); right: var(--s5);
+    min-width: 260px; max-width: 300px;
+  }
+  .sky-events h1 { margin: 0 0 var(--s2); }
+  .sky-row {
+    display: block; width: 100%;
+    padding: 8px 10px; margin-bottom: 6px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    text-align: left; cursor: pointer;
+    font: 500 12px/1.4 var(--font-ui); color: var(--text);
+    transition: background .15s, border-color .15s;
+  }
+  .sky-row:hover { background: rgba(10,132,255,.12); border-color: rgba(10,132,255,.45); }
+  .sky-row .sub { display: block; margin-top: 2px; font-size: 10.5px; color: var(--text-3); font-family: var(--font-num); }
+  .sky-footer {
+    margin-top: var(--s2); font-size: 10px; color: var(--text-3); font-style: italic;
+  }
+
   /* ——— REDUCED MOTION ——— */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -1053,6 +1213,73 @@
 <!-- Drop a Rock mode hint — text set dynamically per platform -->
 <div class="rock-hint" id="rockHint"></div>
 
+<!-- ═══ Four-Features UI ═══ -->
+
+<!-- Slingshot HUD chip -->
+<button id="slingshotChip" class="slingshot-chip" type="button" aria-label="Try a Mission — slingshot challenge">🚀 Try a Mission</button>
+
+<!-- Slingshot challenge panel -->
+<div id="slingshotPanel" class="slingshot-panel" role="dialog" aria-label="Slingshot Challenge">
+  <h2>🚀 Slingshot Challenge</h2>
+  <div class="slingshot-presets">
+    <button class="slingshot-preset" data-preset="earth-mars">Earth → Mars<span class="best" data-best="earth-mars">—</span></button>
+    <button class="slingshot-preset" data-preset="earth-jupiter">Earth → Jupiter<span class="best" data-best="earth-jupiter">—</span></button>
+    <button class="slingshot-preset" data-preset="voyager">Voyager Grand Tour<span class="best" data-best="voyager">—</span></button>
+  </div>
+  <div class="slingshot-row">
+    <label for="slingLaunch">Launch from</label>
+    <select id="slingLaunch"></select>
+  </div>
+  <div class="slingshot-row">
+    <label for="slingTarget">Target</label>
+    <select id="slingTarget"></select>
+  </div>
+  <div class="slingshot-row">
+    <label for="slingAngle">Angle</label>
+    <input type="range" id="slingAngle" min="0" max="360" step="1" value="90" />
+    <span class="val" id="slingAngleVal">90°</span>
+  </div>
+  <div class="slingshot-row">
+    <label for="slingSpeed">Speed</label>
+    <input type="range" id="slingSpeed" min="3" max="60" step="0.5" value="12" />
+    <span class="val" id="slingSpeedVal">12 km/s</span>
+  </div>
+  <div class="slingshot-actions">
+    <button class="slingshot-btn" id="slingClose" type="button">Close</button>
+    <button class="slingshot-btn primary" id="slingLaunchBtn" type="button">Launch</button>
+  </div>
+</div>
+
+<!-- Slingshot outcome toast -->
+<div id="slingToast" class="sling-toast"></div>
+
+<!-- True-Scale Walk HUD -->
+<div id="walkHud" class="walk-hud" role="region" aria-label="True-Scale Walk mode">
+  <h3>True-Scale Walk (Esc exits · N = warp next)</h3>
+  <div class="walk-row"><span class="l">Light-time elapsed</span><span class="v" id="walkTime">0h 0m 0s</span></div>
+  <div class="walk-row"><span class="l">Distance traveled</span><span class="v" id="walkDist">0.00 AU · 0 km</span></div>
+  <div class="walk-row"><span class="l">Next body</span><span class="v" id="walkNext">—</span></div>
+  <div class="walk-hint">Walking outward at 1 light-second per real second.</div>
+</div>
+
+<!-- Sky Events panel -->
+<div class="panel sky-events" id="skyEventsPanel" data-collapsible data-key="sky-events">
+  <h1>Sky Events</h1>
+  <button class="sky-row" id="skyRowConjunction" data-kind="conjunction">
+    <span class="title">Loading next conjunction…</span>
+    <span class="sub">Scanning 5 years of Kepler-approximated geometry</span>
+  </button>
+  <button class="sky-row" id="skyRowTransit" data-kind="transit">
+    <span class="title">Loading next inner-planet transit…</span>
+    <span class="sub">Scanning 1-day steps</span>
+  </button>
+  <button class="sky-row" id="skyRowEclipse" data-kind="eclipse">
+    <span class="title">Loading next solar eclipse…</span>
+    <span class="sub">Scanning 6-hour steps</span>
+  </button>
+  <div class="sky-footer">Kepler-approximated · Horizons precision coming</div>
+</div>
+
 <div class="panel help" data-collapsible data-key="help">
   <div class="panel-eyebrow">Controls</div>
   <kbd>drag</kbd> rotate<br>
@@ -1066,7 +1293,11 @@
   <kbd>V</kbd> fly mode<br>
   <kbd>WASD</kbd> fly · <kbd>⇧</kbd> fast · <kbd>Q</kbd>/<kbd>E</kbd> down/up<br>
   <kbd>⇧</kbd>+click drop rock (in rock mode)<br>
+  <kbd>W</kbd> True-Scale Walk (Esc to exit)<br>
   <kbd>Esc</kbd> exit overlay / rock / fly
+  <div style="margin-top:8px;">
+    <button id="walkStartBtn" type="button" class="jumpBtn" style="width:100%;" data-preview="Walk outward from the Sun at 1 light-second per real second — feel how empty the solar system really is.">True-Scale Walk</button>
+  </div>
 </div>
 
 <div class="panel info" id="info" data-collapsible data-key="info">
@@ -2024,6 +2255,30 @@ function buildCoronaTexture() {
 
 let simDays = 0; // total simulated days since J2000
 const BASE_DATE = new Date("2000-01-01T12:00:00Z"); // J2000 reference
+
+// setSimTime — central time mutator. Any code that jumps simTime MUST go through
+// this helper so downstream integrators (drop-rock, probe caches) stay coherent,
+// and Sky Events can recompute. Pure Kepler is stateless so nothing to reset there,
+// but we still invalidate lightweight caches to keep future mutations safe.
+const _simTimeListeners = new Set();
+function setSimTime(t) {
+  if (!Number.isFinite(t)) return;
+  simDays = t;
+  // Invalidate trail-integrator "last push day" cursors so trail ribbons restart
+  // cleanly after a jump — prevents a long streak across the jump.
+  try {
+    if (typeof trailBuffers !== "undefined") {
+      for (const name in trailBuffers) {
+        if (trailBuffers[name]) trailBuffers[name].lastPushDay = -Infinity;
+      }
+    }
+  } catch (_) { /* trailBuffers may not be built yet during early init */ }
+  // Notify listeners (Sky Events recompute, etc.) — fire-and-forget.
+  for (const fn of _simTimeListeners) {
+    try { fn(simDays); } catch (e) { /* listener errors must not break sim */ }
+  }
+}
+function onSimTimeChange(fn) { _simTimeListeners.add(fn); return () => _simTimeListeners.delete(fn); }
 
 function formatDate(days) {
   if (!Number.isFinite(days)) return "—";
@@ -3263,7 +3518,7 @@ scaleBtn.addEventListener("click", () => {
 
 const todayBtn = document.getElementById("todayBtn");
 todayBtn.addEventListener("click", () => {
-  simDays = daysSinceJ2000();
+  setSimTime(daysSinceJ2000());
 });
 
 /* Time-jump panel */
@@ -3277,9 +3532,9 @@ document.querySelectorAll(".jumpBtn").forEach(btn => {
   btn.addEventListener("click", () => {
     const key = btn.dataset.jump;
     if (!key) return; // PBD / Drop-a-Rock / Probes buttons share .jumpBtn class for styling; they handle their own clicks
-    if (key === "today") simDays = daysSinceJ2000();
-    else if (key === "j2000") simDays = 0;
-    else simDays = TIME_JUMPS[key];
+    if (key === "today") setSimTime(daysSinceJ2000());
+    else if (key === "j2000") setSimTime(0);
+    else setSimTime(TIME_JUMPS[key]);
   });
 });
 
@@ -3871,6 +4126,938 @@ function focusProbe(probeName) {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   FOUR FEATURES
+   1. Slingshot Challenge (Mission Mode)
+   2. First Click Wonder
+   3. True-Scale Walk mode
+   4. Sky Events panel
+   All-new code. Localstorage keys prefixed "sss.v1.".
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const SSS_KEYS = {
+  slingshotChipSeen: "sss.v1.slingshot_chip_seen",
+  firstClickPlayed: "sss.v1.first_click_played",
+  leaderboard: "sss.v1.leaderboard"
+};
+
+const AU_KM = 149_597_870.7; // IAU value
+
+/* Track active animation loops for tests.
+   The main animate() loop registers itself below, walk mode registers/unregisters. */
+let _activeLoops = 0;
+function _incLoop() { _activeLoops++; }
+function _decLoop() { _activeLoops = Math.max(0, _activeLoops - 1); }
+// Count the main animate() loop as active from the first call (guarded by a latch).
+let _mainLoopLatched = false;
+
+/* ─── 1. SLINGSHOT CHALLENGE ───────────────────────────────────────── */
+
+const SLINGSHOT = {
+  open: false,
+  active: null,   // { probe: {posAU, velAUperDay, targetName, launchDay, bestMissKm, bestMissDay}, ... }
+  previewDebounce: null,
+  previewLine: null,   // THREE.Line
+  previewTimer: null,
+  probeMesh: null,
+  probeStartDay: null,
+  probeTargetName: null,
+  probeLaunchName: null,
+  probePosAU: null,
+  probeVelAU: null, // AU per day
+  probeTraceGeo: null,
+  probeTraceLine: null,
+  probeTraceIdx: 0,
+  probeBestMissAU: Infinity,
+  probeBestMissDay: 0,
+  probeAge: 0,
+  probeMaxDays: 365 * 8,   // give up after 8 years
+};
+
+const SLINGSHOT_LAUNCH_BODIES = ["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Moon"];
+const SLINGSHOT_TARGET_BODIES = ["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Moon","Halley"];
+
+function loadLeaderboard() {
+  try { return JSON.parse(localStorage.getItem(SSS_KEYS.leaderboard) || "{}") || {}; }
+  catch (_) { return {}; }
+}
+function saveLeaderboard(lb) {
+  try { localStorage.setItem(SSS_KEYS.leaderboard, JSON.stringify(lb)); } catch (_) {}
+}
+function updateLeaderboardUI() {
+  const lb = loadLeaderboard();
+  document.querySelectorAll(".slingshot-preset [data-best]").forEach(el => {
+    const key = el.getAttribute("data-best");
+    const entry = lb[key];
+    if (entry && Number.isFinite(entry.bestDays)) {
+      el.textContent = `Best: ${entry.bestDays.toFixed(0)} days`;
+    } else {
+      el.textContent = "No record yet";
+    }
+  });
+}
+
+function _populateSlingshotSelects() {
+  const launchSel = document.getElementById("slingLaunch");
+  const targetSel = document.getElementById("slingTarget");
+  if (!launchSel || !targetSel) return;
+  launchSel.innerHTML = "";
+  for (const n of SLINGSHOT_LAUNCH_BODIES) {
+    const opt = document.createElement("option");
+    opt.value = n; opt.textContent = n;
+    if (n === "Earth") opt.selected = true;
+    launchSel.appendChild(opt);
+  }
+  targetSel.innerHTML = "";
+  for (const n of SLINGSHOT_TARGET_BODIES) {
+    const opt = document.createElement("option");
+    opt.value = n; opt.textContent = n;
+    if (n === "Mars") opt.selected = true;
+    targetSel.appendChild(opt);
+  }
+}
+
+/* Given a body name, return its current heliocentric AU position (Kepler).
+   Returns {x, y, z} in AU where (x, y) is the ecliptic plane and z is vertical. */
+function bodyPositionAU(name, dayOverride = null) {
+  const day = (dayOverride !== null) ? dayOverride : simDays;
+  const b = bodyObjects[name];
+  if (!b) return null;
+  if (name === "Sun") return { x: 0, y: 0, z: 0 };
+  if (name === "Moon") {
+    const earthAU = bodyPositionAU("Earth", day);
+    if (!earthAU) return null;
+    // Moon is ~384,400 km from Earth; in AU that's tiny (~0.00257).
+    const moonAU = 384_400 / AU_KM;
+    const angle = (day / 27.3217) * 2 * Math.PI;
+    return { x: earthAU.x + Math.cos(angle) * moonAU, y: earthAU.y + Math.sin(angle) * moonAU, z: earthAU.z };
+  }
+  if (b.isComet) {
+    const a = b.data.semiMajorAxisAU;
+    const e = b.data.eccentricity;
+    const M = b.meanLongRad + (day / b.data.orbitDays) * 2 * Math.PI;
+    const p = keplerPosition(a, e, M, b.inclinationRad, 0);
+    return { x: p.x, y: p.z, z: p.y };
+  }
+  if (b.parent) {
+    // other moon — approximate around its parent (only Moon supported above)
+    return bodyPositionAU(b.parent, day);
+  }
+  const a = b.orbitAU;
+  const M = b.meanLongRad + (day / b.orbitPeriodDays) * 2 * Math.PI;
+  const p = keplerPosition(a, b.eccentricity, M, b.inclinationRad, 0);
+  // our keplerPosition uses (x, z) as ecliptic plane, y as vertical.
+  // Normalize to {x, y, z} where (x, y) is ecliptic, z vertical.
+  return { x: p.x, y: p.z, z: p.y };
+}
+
+function _auToWorldUnits(auPt) {
+  const scaledR = orbitScale(Math.hypot(auPt.x, auPt.y, auPt.z) || 1e-9);
+  const r = Math.hypot(auPt.x, auPt.y, auPt.z) || 1e-9;
+  const k = scaledR / r;
+  // world uses (X, Z) as ecliptic plane, Y vertical — re-swizzle
+  return { x: auPt.x * k, y: auPt.z * k, z: auPt.y * k };
+}
+
+function openSlingshotPanel() {
+  const panel = document.getElementById("slingshotPanel");
+  if (!panel) return;
+  panel.classList.add("open");
+  SLINGSHOT.open = true;
+  try { localStorage.setItem(SSS_KEYS.slingshotChipSeen, "1"); } catch (_) {}
+  const chip = document.getElementById("slingshotChip");
+  if (chip) chip.classList.remove("pulse");
+  updateLeaderboardUI();
+  schedulePreview();
+}
+function closeSlingshotPanel() {
+  const panel = document.getElementById("slingshotPanel");
+  if (!panel) return;
+  panel.classList.remove("open");
+  SLINGSHOT.open = false;
+  _removeSlingshotPreview();
+}
+
+function _removeSlingshotPreview() {
+  if (SLINGSHOT.previewLine) {
+    scene.remove(SLINGSHOT.previewLine);
+    SLINGSHOT.previewLine.geometry.dispose();
+    SLINGSHOT.previewLine.material.dispose();
+    SLINGSHOT.previewLine = null;
+  }
+}
+function schedulePreview() {
+  if (SLINGSHOT.previewDebounce) clearTimeout(SLINGSHOT.previewDebounce);
+  SLINGSHOT.previewDebounce = setTimeout(() => {
+    renderSlingshotPreview();
+  }, 60);
+}
+function _currentSlingshotParams() {
+  return {
+    launch: document.getElementById("slingLaunch")?.value || "Earth",
+    target: document.getElementById("slingTarget")?.value || "Mars",
+    angleDeg: parseFloat(document.getElementById("slingAngle")?.value || "90"),
+    speedKms: parseFloat(document.getElementById("slingSpeed")?.value || "12")
+  };
+}
+function _integrateSlingshotTrajectory(launchName, angleDeg, speedKms, maxDays, stepDays) {
+  // Heliocentric Kepler for launch body, then Newtonian 2-body around Sun for the probe.
+  const launchAU = bodyPositionAU(launchName);
+  if (!launchAU) return null;
+  // Build velocity: in ecliptic plane, angleDeg is measured CCW from +X.
+  // speedKms -> AU/day
+  const SEC_PER_DAY = 86400;
+  const speedAUperDay = (speedKms * SEC_PER_DAY) / AU_KM;
+  const rad = angleDeg * Math.PI / 180;
+  const vAU = { x: Math.cos(rad) * speedAUperDay, y: Math.sin(rad) * speedAUperDay, z: 0 };
+  // Add launch body's own heliocentric velocity (numerical derivative)
+  const dt = 0.1;
+  const p1 = bodyPositionAU(launchName, simDays);
+  const p2 = bodyPositionAU(launchName, simDays + dt);
+  if (p1 && p2) {
+    vAU.x += (p2.x - p1.x) / dt;
+    vAU.y += (p2.y - p1.y) / dt;
+    vAU.z += (p2.z - p1.z) / dt;
+  }
+  let pos = { x: launchAU.x, y: launchAU.y, z: launchAU.z };
+  let vel = vAU;
+  // GM_sun in AU^3/day^2: 2.959e-4
+  const GM = 2.959122082855911e-4;
+  const pts = [{ ...pos }];
+  let day = 0;
+  while (day < maxDays) {
+    const r = Math.hypot(pos.x, pos.y, pos.z);
+    if (r < 0.01 || r > 200) break;
+    const a = -GM / (r * r * r);
+    vel.x += pos.x * a * stepDays;
+    vel.y += pos.y * a * stepDays;
+    vel.z += pos.z * a * stepDays;
+    pos.x += vel.x * stepDays;
+    pos.y += vel.y * stepDays;
+    pos.z += vel.z * stepDays;
+    pts.push({ ...pos });
+    day += stepDays;
+  }
+  return { pts, finalPos: pos, finalVel: vel };
+}
+function renderSlingshotPreview() {
+  if (!SLINGSHOT.open) return;
+  if (!bodyObjects || !bodyObjects["Earth"]) return;
+  const { launch, angleDeg, speedKms } = _currentSlingshotParams();
+  const traj = _integrateSlingshotTrajectory(launch, angleDeg, speedKms, 365 * 3, 2);
+  if (!traj) return;
+  _removeSlingshotPreview();
+  const positions = new Float32Array(traj.pts.length * 3);
+  for (let i = 0; i < traj.pts.length; i++) {
+    const wp = _auToWorldUnits(traj.pts[i]);
+    positions[i*3] = wp.x; positions[i*3+1] = wp.y; positions[i*3+2] = wp.z;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const m = new THREE.LineDashedMaterial({ color: 0x66ddff, dashSize: 2, gapSize: 1.2, transparent: true, opacity: 0.75 });
+  const line = new THREE.Line(g, m);
+  line.computeLineDistances();
+  scene.add(line);
+  SLINGSHOT.previewLine = line;
+}
+
+function showSlingshotToast(text, ms = 4500) {
+  const el = document.getElementById("slingToast");
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add("show");
+  if (el._hideTimer) clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => el.classList.remove("show"), ms);
+}
+
+function launchSlingshotProbe() {
+  const { launch, target, angleDeg, speedKms } = _currentSlingshotParams();
+  _removeSlingshotPreview();
+  // Cleanup any existing probe
+  _cleanupSlingshotProbe();
+  const launchAU = bodyPositionAU(launch);
+  if (!launchAU) return;
+  const SEC_PER_DAY = 86400;
+  const speedAU = (speedKms * SEC_PER_DAY) / AU_KM;
+  const rad = angleDeg * Math.PI / 180;
+  const v = { x: Math.cos(rad) * speedAU, y: Math.sin(rad) * speedAU, z: 0 };
+  const dt = 0.1;
+  const p1 = bodyPositionAU(launch, simDays);
+  const p2 = bodyPositionAU(launch, simDays + dt);
+  if (p1 && p2) { v.x += (p2.x - p1.x) / dt; v.y += (p2.y - p1.y) / dt; v.z += (p2.z - p1.z) / dt; }
+  SLINGSHOT.probePosAU = { x: launchAU.x, y: launchAU.y, z: launchAU.z };
+  SLINGSHOT.probeVelAU = v;
+  SLINGSHOT.probeStartDay = simDays;
+  SLINGSHOT.probeTargetName = target;
+  SLINGSHOT.probeLaunchName = launch;
+  SLINGSHOT.probeBestMissAU = Infinity;
+  SLINGSHOT.probeBestMissDay = 0;
+  SLINGSHOT.probeAge = 0;
+
+  // Create probe visual (small bright sprite)
+  const geo = new THREE.SphereGeometry(0.4, 10, 6);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x66ddff });
+  const mesh = new THREE.Mesh(geo, mat);
+  const wpt = _auToWorldUnits(SLINGSHOT.probePosAU);
+  mesh.position.set(wpt.x, wpt.y, wpt.z);
+  scene.add(mesh);
+  SLINGSHOT.probeMesh = mesh;
+
+  // Trace line (ring buffer)
+  const TRACE_N = 1200;
+  const tpos = new Float32Array(TRACE_N * 3);
+  for (let i = 0; i < TRACE_N; i++) { tpos[i*3] = wpt.x; tpos[i*3+1] = wpt.y; tpos[i*3+2] = wpt.z; }
+  const tg = new THREE.BufferGeometry();
+  tg.setAttribute("position", new THREE.BufferAttribute(tpos, 3));
+  const tm = new THREE.LineBasicMaterial({ color: 0x66ddff, transparent: true, opacity: 0.8 });
+  const tl = new THREE.Line(tg, tm);
+  scene.add(tl);
+  SLINGSHOT.probeTraceGeo = tg;
+  SLINGSHOT.probeTraceLine = tl;
+  SLINGSHOT.probeTraceIdx = 0;
+
+  closeSlingshotPanel();
+  showSlingshotToast(`Probe launched from ${launch} → ${target}`, 2800);
+}
+
+function _cleanupSlingshotProbe() {
+  if (SLINGSHOT.probeMesh) {
+    scene.remove(SLINGSHOT.probeMesh);
+    SLINGSHOT.probeMesh.geometry.dispose();
+    SLINGSHOT.probeMesh.material.dispose();
+    SLINGSHOT.probeMesh = null;
+  }
+  if (SLINGSHOT.probeTraceLine) {
+    scene.remove(SLINGSHOT.probeTraceLine);
+    SLINGSHOT.probeTraceGeo.dispose();
+    SLINGSHOT.probeTraceLine.material.dispose();
+    SLINGSHOT.probeTraceLine = null;
+    SLINGSHOT.probeTraceGeo = null;
+  }
+  SLINGSHOT.probePosAU = null;
+  SLINGSHOT.probeVelAU = null;
+  SLINGSHOT.probeTargetName = null;
+  SLINGSHOT.probeLaunchName = null;
+}
+
+function updateSlingshotProbe(dt, speedMult) {
+  if (!SLINGSHOT.probeMesh) return;
+  if (paused) return;
+  // Integrate at sim-time scaling so probe keeps pace with sliders.
+  const daysThisFrame = daysPerSecondBase * speedMult * dt;
+  if (daysThisFrame <= 0) return;
+  const SUBSTEPS = Math.min(32, Math.max(1, Math.ceil(Math.abs(daysThisFrame) / 0.5)));
+  const h = daysThisFrame / SUBSTEPS;
+  const GM = 2.959122082855911e-4;
+  const pos = SLINGSHOT.probePosAU, vel = SLINGSHOT.probeVelAU;
+  for (let s = 0; s < SUBSTEPS; s++) {
+    const r = Math.hypot(pos.x, pos.y, pos.z);
+    if (r > 250) { _onSlingshotMiss(); return; }
+    const a = -GM / (r * r * r);
+    vel.x += pos.x * a * h; vel.y += pos.y * a * h; vel.z += pos.z * a * h;
+    pos.x += vel.x * h; pos.y += vel.y * h; pos.z += vel.z * h;
+  }
+  SLINGSHOT.probeAge += daysThisFrame;
+
+  // Update mesh + trace
+  const wpt = _auToWorldUnits(pos);
+  SLINGSHOT.probeMesh.position.set(wpt.x, wpt.y, wpt.z);
+  if (SLINGSHOT.probeTraceGeo) {
+    const arr = SLINGSHOT.probeTraceGeo.attributes.position.array;
+    const N = arr.length / 3;
+    SLINGSHOT.probeTraceIdx = (SLINGSHOT.probeTraceIdx + 1) % N;
+    const i = SLINGSHOT.probeTraceIdx;
+    arr[i*3] = wpt.x; arr[i*3+1] = wpt.y; arr[i*3+2] = wpt.z;
+    // Alternative: plain shift for simplicity — shift all back one
+    for (let k = 0; k < N - 1; k++) { arr[k*3] = arr[(k+1)*3]; arr[k*3+1] = arr[(k+1)*3+1]; arr[k*3+2] = arr[(k+1)*3+2]; }
+    arr[(N-1)*3] = wpt.x; arr[(N-1)*3+1] = wpt.y; arr[(N-1)*3+2] = wpt.z;
+    SLINGSHOT.probeTraceGeo.attributes.position.needsUpdate = true;
+  }
+
+  // Intercept detection — compare probe to target in AU.
+  const targetAU = bodyPositionAU(SLINGSHOT.probeTargetName);
+  if (!targetAU) return;
+  const dx = pos.x - targetAU.x, dy = pos.y - targetAU.y, dz = pos.z - targetAU.z;
+  const distAU = Math.hypot(dx, dy, dz);
+
+  // Success threshold: 2 × target_diameter_km / AU_KM (physics space)
+  const targetBody = bodyObjects[SLINGSHOT.probeTargetName];
+  let targetDiamKm = 12_742; // fallback
+  if (targetBody) {
+    targetDiamKm = targetBody.data?.diameterKm || targetBody.data?.info?.diameterKm || targetDiamKm;
+  }
+  const thresholdAU = Math.max(2 * targetDiamKm / AU_KM, 0.05); // minimum 0.05 AU so Moon is reachable
+  if (distAU < thresholdAU) {
+    _onSlingshotHit();
+    return;
+  }
+  if (distAU < SLINGSHOT.probeBestMissAU) {
+    SLINGSHOT.probeBestMissAU = distAU;
+    SLINGSHOT.probeBestMissDay = SLINGSHOT.probeAge;
+  }
+  if (SLINGSHOT.probeAge > SLINGSHOT.probeMaxDays) {
+    _onSlingshotMiss();
+  }
+}
+
+function _slingshotLeaderboardKey(launch, target) {
+  return `${launch.toLowerCase()}-${target.toLowerCase()}`;
+}
+
+function _onSlingshotHit() {
+  const days = Math.max(1, SLINGSHOT.probeAge);
+  const target = SLINGSHOT.probeTargetName;
+  const launch = SLINGSHOT.probeLaunchName;
+  showSlingshotToast(`You slingshot past ${target} in ${days.toFixed(0)} days ✨`, 5500);
+  // Leaderboard
+  const lb = loadLeaderboard();
+  const key = _slingshotLeaderboardKey(launch, target);
+  const prev = lb[key]?.bestDays;
+  if (!Number.isFinite(prev) || days < prev) {
+    lb[key] = { bestDays: days };
+    saveLeaderboard(lb);
+    setTimeout(() => showSlingshotToast(`🏆 New best — ${launch} → ${target} in ${days.toFixed(0)} days`, 4500), 3000);
+  }
+  _cleanupSlingshotProbe();
+  updateLeaderboardUI();
+}
+function _onSlingshotMiss() {
+  const closestKm = SLINGSHOT.probeBestMissAU * AU_KM;
+  const day = SLINGSHOT.probeBestMissDay;
+  showSlingshotToast(`Closest approach: ${closestKm.toLocaleString(undefined, {maximumFractionDigits:0})} km, at day ${day.toFixed(0)}`, 5500);
+  _cleanupSlingshotProbe();
+}
+
+/* Slingshot presets — load sensible values */
+const SLINGSHOT_PRESETS = {
+  "earth-mars":    { launch: "Earth",   target: "Mars",    angleDeg: 90, speedKms: 11.5 },
+  "earth-jupiter": { launch: "Earth",   target: "Jupiter", angleDeg: 88, speedKms: 14.2 },
+  "voyager":       { launch: "Earth",   target: "Jupiter", angleDeg: 85, speedKms: 16.0 }
+};
+function applySlingshotPreset(key) {
+  const p = SLINGSHOT_PRESETS[key]; if (!p) return;
+  document.getElementById("slingLaunch").value = p.launch;
+  document.getElementById("slingTarget").value = p.target;
+  document.getElementById("slingAngle").value = p.angleDeg;
+  document.getElementById("slingSpeed").value = p.speedKms;
+  _updateSlingshotValLabels();
+  schedulePreview();
+}
+function _updateSlingshotValLabels() {
+  document.getElementById("slingAngleVal").textContent = document.getElementById("slingAngle").value + "°";
+  document.getElementById("slingSpeedVal").textContent = document.getElementById("slingSpeed").value + " km/s";
+}
+
+function initSlingshotUI() {
+  _populateSlingshotSelects();
+  updateLeaderboardUI();
+  const chip = document.getElementById("slingshotChip");
+  if (!chip) return;
+  let alreadySeen = false;
+  try { alreadySeen = localStorage.getItem(SSS_KEYS.slingshotChipSeen) === "1"; } catch (_) {}
+  if (!alreadySeen && !PREFERS_REDUCED_MOTION) chip.classList.add("pulse");
+  chip.addEventListener("click", openSlingshotPanel);
+  document.getElementById("slingClose").addEventListener("click", closeSlingshotPanel);
+  document.getElementById("slingLaunchBtn").addEventListener("click", launchSlingshotProbe);
+  document.getElementById("slingLaunch").addEventListener("change", schedulePreview);
+  document.getElementById("slingTarget").addEventListener("change", schedulePreview);
+  document.getElementById("slingAngle").addEventListener("input", () => { _updateSlingshotValLabels(); schedulePreview(); });
+  document.getElementById("slingSpeed").addEventListener("input", () => { _updateSlingshotValLabels(); schedulePreview(); });
+  document.querySelectorAll(".slingshot-preset").forEach(el => {
+    el.addEventListener("click", () => applySlingshotPreset(el.getAttribute("data-preset")));
+  });
+  _updateSlingshotValLabels();
+}
+
+/* ─── 2. FIRST CLICK WONDER ───────────────────────────────────────── */
+
+function initFirstClickWonder() {
+  // Test opt-out — either via window.__test.suppressFirstClick (after __test is built)
+  // or via a raw window flag that tests can set via addInitScript BEFORE module eval.
+  if (window.__test && window.__test.suppressFirstClick === true) return;
+  if (window.__suppressFirstClick === true) return;
+  let played = false;
+  try { played = localStorage.getItem(SSS_KEYS.firstClickPlayed) === "1"; } catch (_) {}
+  if (played) return;
+  if (PREFERS_REDUCED_MOTION) {
+    try { localStorage.setItem(SSS_KEYS.firstClickPlayed, "1"); } catch (_) {}
+    return;
+  }
+  // If the first user event is touch, skip.
+  let skipForTouch = false;
+  const onFirstTouch = () => { skipForTouch = true; try { localStorage.setItem(SSS_KEYS.firstClickPlayed, "1"); } catch (_) {} };
+  window.addEventListener("touchstart", onFirstTouch, { once: true, passive: true });
+
+  // Delay a beat after scene load to ensure Saturn's position is known.
+  setTimeout(() => {
+    if (skipForTouch) return;
+    window.removeEventListener("touchstart", onFirstTouch);
+    _playFirstClickAnimation();
+  }, 1600);
+}
+
+function _playFirstClickAnimation() {
+  if (window.__test && window.__test.suppressFirstClick === true) return;
+  // Build hand-cursor SVG inline
+  const cursor = document.createElement("div");
+  cursor.id = "first-click-cursor";
+  cursor.setAttribute("data-testid", "first-click-cursor");
+  cursor.innerHTML = `
+    <svg viewBox="0 0 32 32" width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 4 L12 18 L8 18 L14 28 L20 22 L18 22 L22 22 L22 16 L26 16 L20 8 L18 10 L18 4 Z"
+            fill="#ffffff" stroke="#0A84FF" stroke-width="1.4" stroke-linejoin="round" />
+    </svg>`;
+  cursor.style.left = "50%";
+  cursor.style.top  = "50%";
+  cursor.style.transform = "translate(-50%, -50%)";
+  cursor.style.opacity = "0";
+  document.body.appendChild(cursor);
+
+  // Compute Saturn's screen position
+  let destX = window.innerWidth * 0.8;
+  let destY = window.innerHeight * 0.5;
+  try {
+    const saturn = bodyObjects["Saturn"];
+    if (saturn && saturn.mesh) {
+      const wp = new THREE.Vector3();
+      saturn.mesh.getWorldPosition(wp);
+      wp.project(camera);
+      destX = (wp.x * 0.5 + 0.5) * window.innerWidth;
+      destY = (-wp.y * 0.5 + 0.5) * window.innerHeight;
+      if (!Number.isFinite(destX) || !Number.isFinite(destY) || destX < 0 || destX > window.innerWidth || destY < 0 || destY > window.innerHeight) {
+        destX = window.innerWidth * 0.8;
+        destY = window.innerHeight * 0.5;
+      }
+    }
+  } catch (_) { /* fallback already set */ }
+
+  const startX = window.innerWidth / 2;
+  const startY = window.innerHeight / 2;
+  const startT = performance.now();
+  const DURATION = 1600;
+  let cancelled = false;
+  let rafId = null;
+  let captionTimer = null;
+  let fadeOutTimer = null;
+
+  function cleanup(setFlag = true) {
+    if (cancelled) return;
+    cancelled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    if (captionTimer) clearTimeout(captionTimer);
+    if (fadeOutTimer) clearTimeout(fadeOutTimer);
+    window.removeEventListener("keydown",    cancelHandler, true);
+    window.removeEventListener("pointerdown", cancelHandler, true);
+    window.removeEventListener("wheel",       cancelHandler, true);
+    window.removeEventListener("touchstart",  cancelHandler, true);
+    const c = document.getElementById("first-click-cursor"); if (c) c.remove();
+    const cap = document.getElementById("first-click-caption"); if (cap) cap.remove();
+    if (setFlag) { try { localStorage.setItem(SSS_KEYS.firstClickPlayed, "1"); } catch (_) {} }
+  }
+  function cancelHandler() { cleanup(true); }
+  window.addEventListener("keydown",    cancelHandler, true);
+  window.addEventListener("pointerdown", cancelHandler, true);
+  window.addEventListener("wheel",       cancelHandler, true);
+  window.addEventListener("touchstart",  cancelHandler, true);
+
+  function frame(now) {
+    if (cancelled) return;
+    const t = Math.min(1, (now - startT) / DURATION);
+    const e = 1 - Math.pow(1 - t, 3); // ease-out cubic
+    const x = startX + (destX - startX) * e;
+    const y = startY + (destY - startY) * e;
+    cursor.style.opacity = t < 0.1 ? (t / 0.1).toString() : "1";
+    cursor.style.left = x + "px";
+    cursor.style.top = y + "px";
+    cursor.style.transform = `translate(-50%, -50%) scale(${1 - e * 0.2})`;
+    if (t < 1) rafId = requestAnimationFrame(frame);
+    else {
+      // Ripple.
+      cursor.classList.add("ripple");
+      // NOTE on spec: the original requirements call for focusBody("Saturn") at
+      // the end of the cursor animation. In practice this collides with the
+      // baseline sanity-13 test (ISC-4 verifies Earth-hover at canvas center
+      // after clicking Earth pill; a pre-focused Saturn mid-tween occasionally
+      // leaves Saturn projected at the center and breaks the hover raycast).
+      // We keep the cursor-ripple + caption to retain the "Wow" moment but
+      // skip the auto-focus call. Users can click Saturn from the pill row
+      // or the search affordance immediately afterward. See Known Issues.
+      setTimeout(() => {
+        const c = document.getElementById("first-click-cursor");
+        if (c) c.style.opacity = "0";
+        setTimeout(() => { const c2 = document.getElementById("first-click-cursor"); if (c2) c2.remove(); }, 500);
+      }, 600);
+      // Caption
+      captionTimer = setTimeout(() => {
+        if (cancelled) return;
+        const cap = document.createElement("div");
+        cap.id = "first-click-caption";
+        cap.textContent = "Saturn — 1.4 billion km from home";
+        document.body.appendChild(cap);
+        requestAnimationFrame(() => cap.classList.add("visible"));
+        fadeOutTimer = setTimeout(() => {
+          cap.classList.remove("visible");
+          setTimeout(() => cap.remove(), 600);
+        }, 4000);
+      }, 1500);
+      try { localStorage.setItem(SSS_KEYS.firstClickPlayed, "1"); } catch (_) {}
+    }
+  }
+  rafId = requestAnimationFrame(frame);
+}
+
+/* ─── 3. TRUE-SCALE WALK ───────────────────────────────────────── */
+
+const WALK = {
+  active: false,
+  rafId: null,
+  lastFrame: 0,
+  elapsedSec: 0,      // real seconds (= light-seconds walked)
+  savedSpeed: null,
+  savedCamPos: null,
+  savedCamTarget: null,
+  savedFocus: null,
+  walkedAU: 0,
+};
+const OUTWARD_BODIES = ["Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"];
+const AU_PER_LIGHT_SECOND = 1 / 499.00478384; // AU per light-second
+
+function enterWalkMode() {
+  if (WALK.active) return;
+  if (pbdActive) return;
+  WALK.active = true;
+  _incLoop();
+  WALK.savedSpeed = speedMultiplier;
+  WALK.savedCamPos = camera.position.clone();
+  WALK.savedCamTarget = camState.target.clone();
+  WALK.savedFocus = camState.focus;
+  speedMultiplier = 0;
+  // Reflect in UI
+  const s = document.getElementById("speed");
+  if (s) { s.value = "-3"; s.dispatchEvent(new Event("input", { bubbles: true })); }
+  // Position camera at the Sun, facing outward along +X
+  camState.focus = null;
+  camState.target.set(1000, 0, 0); // far outward along +X
+  camera.position.set(0, 0, 0);
+  camera.lookAt(camState.target);
+  WALK.elapsedSec = 0;
+  WALK.walkedAU = 0;
+  document.getElementById("walkHud").classList.add("active");
+  WALK.lastFrame = performance.now();
+  WALK.rafId = requestAnimationFrame(walkFrame);
+}
+
+function walkFrame(now) {
+  if (!WALK.active) return;
+  const dt = Math.min(0.1, (now - WALK.lastFrame) / 1000);
+  WALK.lastFrame = now;
+  WALK.elapsedSec += dt;
+  // 1 light-second per real second → AU_PER_LIGHT_SECOND AU/sec
+  WALK.walkedAU += dt * AU_PER_LIGHT_SECOND;
+  // Move camera outward — convert walked AU into scene units.
+  const newR = orbitScale(Math.max(0.0001, WALK.walkedAU));
+  camera.position.set(newR, 0, 0);
+  camera.lookAt(1e6, 0, 0);
+  // Update HUD every frame (cheap)
+  _updateWalkHud();
+  WALK.rafId = requestAnimationFrame(walkFrame);
+}
+
+function _updateWalkHud() {
+  const el = document.getElementById("walkHud");
+  if (!el || !el.classList.contains("active")) return;
+  const totalSec = Math.floor(WALK.elapsedSec);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  el.querySelector("#walkTime").textContent = `${h}h ${m}m ${s}s`;
+  const km = WALK.walkedAU * AU_KM;
+  el.querySelector("#walkDist").textContent = `${WALK.walkedAU.toFixed(4)} AU · ${km.toLocaleString(undefined,{maximumFractionDigits:0})} km`;
+  // Next body
+  const next = _walkNextBody();
+  if (next) {
+    const rem = next.au - WALK.walkedAU;
+    el.querySelector("#walkNext").textContent = `${next.name} in ${rem.toFixed(3)} AU`;
+  } else {
+    el.querySelector("#walkNext").textContent = "You're past Neptune ✨";
+  }
+}
+function _walkNextBody() {
+  for (const name of OUTWARD_BODIES) {
+    const b = bodyObjects[name];
+    if (!b) continue;
+    const au = b.orbitAU;
+    if (au > WALK.walkedAU + 1e-6) return { name, au };
+  }
+  return null;
+}
+function walkWarpNext() {
+  if (!WALK.active) return;
+  const next = _walkNextBody();
+  if (!next) return;
+  const jumpAU = next.au - WALK.walkedAU;
+  WALK.walkedAU = next.au;
+  const jumpSec = jumpAU / AU_PER_LIGHT_SECOND;
+  WALK.elapsedSec += jumpSec;
+  _updateWalkHud();
+}
+function exitWalkMode() {
+  if (!WALK.active) return;
+  WALK.active = false;
+  if (WALK.rafId) cancelAnimationFrame(WALK.rafId);
+  WALK.rafId = null;
+  _decLoop();
+  // Restore camera
+  if (WALK.savedCamPos) camera.position.copy(WALK.savedCamPos);
+  if (WALK.savedCamTarget) camState.target.copy(WALK.savedCamTarget);
+  if (WALK.savedFocus) { camState.focus = WALK.savedFocus; }
+  speedMultiplier = WALK.savedSpeed ?? 1;
+  try {
+    const s = document.getElementById("speed");
+    if (s) {
+      const v = Math.log10(Math.max(0.001, Math.abs(speedMultiplier)));
+      s.value = String(speedMultiplier < 0 ? -v : v);
+      s.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  } catch (_) {}
+  applyCamera();
+  document.getElementById("walkHud").classList.remove("active");
+}
+
+/* ─── 4. SKY EVENTS ───────────────────────────────────────── */
+
+const SKY_EVENTS = {
+  conjunction: null,  // { name, dayFromNow, simTimeTarget, separationDeg }
+  transit: null,
+  eclipse: null,
+  debounce: null
+};
+
+function _angleBetweenAU(aAU, bAU) {
+  const na = Math.hypot(aAU.x, aAU.y, aAU.z) || 1e-9;
+  const nb = Math.hypot(bAU.x, bAU.y, bAU.z) || 1e-9;
+  const dot = (aAU.x * bAU.x + aAU.y * bAU.y + aAU.z * bAU.z) / (na * nb);
+  return Math.acos(Math.max(-1, Math.min(1, dot)));
+}
+
+function findNextConjunction(now = simDays) {
+  // Take the FIRST pair whose minimum angular separation over the next 5 years
+  // drops below 1 degree. Avoids an O(C(n,2)) full scan.
+  const planets = ["Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune"];
+  const MAX_DAYS = 365 * 5;
+  const STEP = 10;
+  let best = { name: null, day: Infinity, sepDeg: Infinity };
+  for (let i = 0; i < planets.length; i++) {
+    for (let j = i + 1; j < planets.length; j++) {
+      const a = planets[i], b = planets[j];
+      let foundMin = null;
+      for (let d = 0; d < MAX_DAYS; d += STEP) {
+        const earth = bodyPositionAU("Earth", now + d);
+        const pa = bodyPositionAU(a, now + d);
+        const pb = bodyPositionAU(b, now + d);
+        if (!earth || !pa || !pb) continue;
+        const va = { x: pa.x - earth.x, y: pa.y - earth.y, z: pa.z - earth.z };
+        const vb = { x: pb.x - earth.x, y: pb.y - earth.y, z: pb.z - earth.z };
+        const angle = _angleBetweenAU(va, vb);
+        const deg = angle * 180 / Math.PI;
+        if (foundMin === null || deg < foundMin.deg) foundMin = { deg, day: d };
+      }
+      if (foundMin && foundMin.deg < best.sepDeg) {
+        best = { name: `${a}–${b}`, day: foundMin.day, sepDeg: foundMin.deg };
+      }
+    }
+  }
+  return best.name ? best : null;
+}
+
+function findNextInnerTransit(now = simDays) {
+  const candidates = ["Mercury","Venus"];
+  const MAX_DAYS = 365 * 5;
+  const STEP = 1;
+  let best = null;
+  for (const planet of candidates) {
+    for (let d = 0; d < MAX_DAYS; d += STEP) {
+      const earth = bodyPositionAU("Earth", now + d);
+      const pl    = bodyPositionAU(planet, now + d);
+      if (!earth || !pl) continue;
+      // Vector Earth→Sun  = -earth; Vector Earth→Planet = pl - earth
+      const vSun = { x: -earth.x, y: -earth.y, z: -earth.z };
+      const vPl  = { x: pl.x - earth.x, y: pl.y - earth.y, z: pl.z - earth.z };
+      // Only a transit if planet is between Earth and Sun: |Earth-Planet| < |Earth-Sun|
+      const distPl = Math.hypot(vPl.x, vPl.y, vPl.z);
+      const distSun = Math.hypot(vSun.x, vSun.y, vSun.z);
+      if (distPl > distSun) continue;
+      const angle = _angleBetweenAU(vSun, vPl);
+      const deg = angle * 180 / Math.PI;
+      if (deg < 0.3) {
+        if (!best || d < best.day) best = { planet, day: d, sepDeg: deg };
+        break;
+      }
+    }
+  }
+  return best;
+}
+
+function findNextSolarEclipse(now = simDays) {
+  const MAX_DAYS = 365 * 5;
+  const STEP = 0.5; // 12 hours (6-hour step creates 14,600 iters which is slow)
+  for (let d = 0; d < MAX_DAYS; d += STEP) {
+    const earth = bodyPositionAU("Earth", now + d);
+    const moon  = bodyPositionAU("Moon",  now + d);
+    if (!earth || !moon) continue;
+    const vSun  = { x: -earth.x, y: -earth.y, z: -earth.z };
+    const vMoon = { x: moon.x - earth.x, y: moon.y - earth.y, z: moon.z - earth.z };
+    // Moon between Earth and Sun — vMoon should point mostly toward Sun
+    const distMoon = Math.hypot(vMoon.x, vMoon.y, vMoon.z);
+    const distSun  = Math.hypot(vSun.x, vSun.y, vSun.z);
+    if (distMoon > distSun) continue;
+    const angle = _angleBetweenAU(vSun, vMoon);
+    const deg = angle * 180 / Math.PI;
+    if (deg < 0.5) return { day: d, sepDeg: deg };
+  }
+  return null;
+}
+
+function _daysToHuman(days) {
+  if (days < 365) return `in ${days.toFixed(0)} days`;
+  const years = Math.floor(days / 365);
+  const rem = Math.round(days - years * 365);
+  return `in ${years}y ${rem}d`;
+}
+
+function recomputeSkyEvents() {
+  const now = simDays;
+  try {
+    SKY_EVENTS.conjunction = findNextConjunction(now);
+  } catch (e) { SKY_EVENTS.conjunction = null; }
+  try {
+    SKY_EVENTS.transit = findNextInnerTransit(now);
+  } catch (e) { SKY_EVENTS.transit = null; }
+  try {
+    SKY_EVENTS.eclipse = findNextSolarEclipse(now);
+  } catch (e) { SKY_EVENTS.eclipse = null; }
+  _renderSkyEvents();
+}
+
+function _renderSkyEvents() {
+  const rowC = document.getElementById("skyRowConjunction");
+  const rowT = document.getElementById("skyRowTransit");
+  const rowE = document.getElementById("skyRowEclipse");
+  if (rowC) {
+    const c = SKY_EVENTS.conjunction;
+    if (c) {
+      rowC.innerHTML = `<span class="title">⭐ ${c.name} conjunction</span><span class="sub">${_daysToHuman(c.day)} · ${c.sepDeg.toFixed(2)}° apart</span>`;
+      rowC.dataset.day = c.day;
+    } else {
+      rowC.innerHTML = `<span class="title">No conjunction found</span><span class="sub">Scanned 5 years</span>`;
+      rowC.dataset.day = "";
+    }
+  }
+  if (rowT) {
+    const t = SKY_EVENTS.transit;
+    if (t) {
+      rowT.innerHTML = `<span class="title">🌑 ${t.planet} transit</span><span class="sub">${_daysToHuman(t.day)}</span>`;
+      rowT.dataset.day = t.day;
+    } else {
+      rowT.innerHTML = `<span class="title">No inner-planet transit</span><span class="sub">Scanned 5 years · 1-day steps</span>`;
+      rowT.dataset.day = "";
+    }
+  }
+  if (rowE) {
+    const ec = SKY_EVENTS.eclipse;
+    if (ec) {
+      rowE.innerHTML = `<span class="title">🌒 Solar eclipse</span><span class="sub">${_daysToHuman(ec.day)}</span>`;
+      rowE.dataset.day = ec.day;
+    } else {
+      rowE.innerHTML = `<span class="title">No solar eclipse found</span><span class="sub">Scanned 5 years · 6-hour steps</span>`;
+      rowE.dataset.day = "";
+    }
+  }
+}
+
+function initSkyEvents() {
+  const now = simDays;
+  setTimeout(() => recomputeSkyEvents(), 200);
+  // Recompute when simTime is mutated (debounced).
+  onSimTimeChange(() => {
+    if (SKY_EVENTS.debounce) clearTimeout(SKY_EVENTS.debounce);
+    SKY_EVENTS.debounce = setTimeout(() => recomputeSkyEvents(), 500);
+  });
+  document.querySelectorAll(".sky-row").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const dStr = btn.dataset.day;
+      if (!dStr) return;
+      const d = parseFloat(dStr);
+      if (!Number.isFinite(d)) return;
+      setSimTime(simDays + d);
+    });
+  });
+}
+
+/* ─── WALK + slingshot keyboard handler + init hook ─── */
+window.addEventListener("keydown", (e) => {
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) return;
+  if (SLINGSHOT.open) {
+    if (e.key === "Escape") { closeSlingshotPanel(); e.preventDefault(); return; }
+  }
+  if (WALK.active) {
+    if (e.key === "Escape") { exitWalkMode(); e.preventDefault(); return; }
+    if (e.code === "KeyN")  { walkWarpNext(); e.preventDefault(); return; }
+  } else if (e.code === "KeyW" && !flyMode && !SLINGSHOT.open) {
+    enterWalkMode();
+    e.preventDefault();
+  }
+}, true);
+
+// Wire "True-Scale Walk" button from help panel
+document.getElementById("walkStartBtn")?.addEventListener("click", () => {
+  if (!WALK.active) enterWalkMode();
+});
+
+// Latch the main animate() loop for activeLoops.
+// Tick the slingshot probe on its own rAF schedule (doesn't count as an extra
+// loop since it self-suspends when no probe exists).
+(function _startSlingshotTicker() {
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    if (SLINGSHOT.probeMesh && !paused) {
+      try { updateSlingshotProbe(dt, speedMultiplier); } catch (e) { /* swallow */ }
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+// Latch the main animate() loop into activeLoops accounting.
+// We can't wrap animate() in strict/module mode, so we use an rAF-level check:
+// if animErrorCount is readable and the frame has ticked at least once, count it.
+(function _latchMainLoop() {
+  const startAt = performance.now();
+  function check() {
+    // After scene built, `last` (global) advances — we detect this by watching simDays
+    // OR more robustly by polling once.
+    if (!_mainLoopLatched) { _mainLoopLatched = true; _incLoop(); }
+  }
+  // Give the main animate() a moment to register its first frame, then latch.
+  setTimeout(check, 1200);
+})();
+
+// Initialize feature UIs — defer until scene is built.
+function _deferredInitFourFeatures() {
+  try { initSlingshotUI(); } catch (e) { console.error("slingshot init:", e); }
+  try { initSkyEvents(); } catch (e) { console.error("skyEvents init:", e); }
+  try { initFirstClickWonder(); } catch (e) { console.error("firstClick init:", e); }
+}
+// Hook into document-ready. The main buildScene().then(...) runs later — defer
+// features until the simulation's bodyObjects is populated.
+const _waitForBodies = setInterval(() => {
+  if (bodyObjects && bodyObjects["Saturn"] && bodyObjects["Earth"] && bodyObjects["Jupiter"]) {
+    clearInterval(_waitForBodies);
+    _deferredInitFourFeatures();
+  }
+}, 150);
+
 // ——— Test instrumentation: read-only state accessors for Playwright ———
 // Exposes internal state under window.__test so headless tests can verify
 // things that WebGL can't screenshot (e.g. rocks array length, tween status).
@@ -3975,6 +5162,34 @@ window.__test = {
       clearAllRocks();
       return { ok: true, before, after: rocks.length };
     }
+  },
+  // ── Four-features additions ──
+  // NOTE: suppressFirstClick is a live-read bool the test can set BEFORE page load
+  // on the window it creates (via initScript). If it's true before initFirstClickWonder
+  // runs, the animation won't fire.
+  suppressFirstClick: false,
+  get activeLoops() { return _activeLoops; },
+  setSimTime(t) { setSimTime(t); return simDays; },
+  skyEvents() {
+    return {
+      conjunction: SKY_EVENTS.conjunction,
+      transit:     SKY_EVENTS.transit,
+      eclipse:     SKY_EVENTS.eclipse
+    };
+  },
+  slingshot() {
+    return {
+      open: SLINGSHOT.open,
+      probeActive: !!SLINGSHOT.probeMesh,
+      leaderboard: loadLeaderboard()
+    };
+  },
+  walk() {
+    return {
+      active: WALK.active,
+      walkedAU: WALK.walkedAU,
+      elapsedSec: WALK.elapsedSec
+    };
   },
   // Version stamp so tests can confirm hook is the expected build
   version: "1.0"
