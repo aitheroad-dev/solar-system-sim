@@ -17,7 +17,12 @@ const results = [];
 const rec = (id, pass, note) => results.push({ id, pass, note: String(note).slice(0, 100) });
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-await page.evaluate(() => localStorage.clear());
+await page.evaluate(() => {
+  localStorage.clear();
+  // Suppress First Click Wonder so ISC-4 (Earth hover at canvas center) isn't
+  // disturbed by the FCW-triggered Saturn camera tween.
+  localStorage.setItem('sss.v1.first_click_played', '1');
+});
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(8000);
 
@@ -25,7 +30,9 @@ await page.waitForTimeout(8000);
 rec('1', consoleErrors.length === 0 && pageErrors.length === 0,
   `console=${consoleErrors.length} page=${pageErrors.length}`);
 
-// ISC-2: coach card visible on initial load
+// ISC-2: coach card stays hidden on initial load (First Click Wonder is now
+// the first-run welcome experience; coach card is only reachable via the help
+// affordance, never auto-shown).
 {
   const c = await page.evaluate(() => {
     const el = document.getElementById('coach-card');
@@ -33,7 +40,8 @@ rec('1', consoleErrors.length === 0 && pageErrors.length === 0,
     const cs = getComputedStyle(el);
     return { exists: true, hidden: el.hidden, opacity: cs.opacity, display: cs.display, visibleClass: el.classList.contains('visible') };
   });
-  rec('2', c.exists && (c.opacity > 0 || c.visibleClass), JSON.stringify(c));
+  rec('2', c.exists && (c.hidden === true || parseFloat(c.opacity) === 0 || c.visibleClass === false),
+    JSON.stringify(c));
 }
 
 // ISC-3: coach card transitions to opacity 0 after dismiss

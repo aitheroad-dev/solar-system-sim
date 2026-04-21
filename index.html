@@ -4154,7 +4154,6 @@ buildScene().then(() => {
   buildTrails();
   buildProbes();
   requestAnimationFrame((t) => { last = t; animate(t); });
-  initCoachCard();
 }).catch(err => {
   console.error("scene build failed:", err);
   progressEl.textContent = "Error: " + err.message;
@@ -4943,16 +4942,8 @@ function _playFirstClickAnimation() {
     cursor.style.transform = `translate(-50%, -50%) scale(${1 - e * 0.2})`;
     if (t < 1) rafId = requestAnimationFrame(frame);
     else {
-      // Ripple.
       cursor.classList.add("ripple");
-      // NOTE on spec: the original requirements call for focusBody("Saturn") at
-      // the end of the cursor animation. In practice this collides with the
-      // baseline sanity-13 test (ISC-4 verifies Earth-hover at canvas center
-      // after clicking Earth pill; a pre-focused Saturn mid-tween occasionally
-      // leaves Saturn projected at the center and breaks the hover raycast).
-      // We keep the cursor-ripple + caption to retain the "Wow" moment but
-      // skip the auto-focus call. Users can click Saturn from the pill row
-      // or the search affordance immediately afterward. See Known Issues.
+      try { if (typeof focusBody === "function") focusBody("Saturn"); } catch (_) {}
       setTimeout(() => {
         const c = document.getElementById("first-click-cursor");
         if (c) c.style.opacity = "0";
