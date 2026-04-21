@@ -1230,7 +1230,9 @@
 {
   "imports": {
     "three": "https://esm.sh/three@0.182.0",
-    "three/addons/": "https://esm.sh/three@0.182.0/examples/jsm/"
+    "three/addons/": "https://esm.sh/three@0.182.0/examples/jsm/",
+    "three/webgpu": "https://esm.sh/three@0.182.0/webgpu",
+    "three/tsl": "https://esm.sh/three@0.182.0/tsl"
   }
 }
 </script>
@@ -2031,7 +2033,17 @@ const PREFERS_REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduc
 const MOBILE_DPR_CAP = 1.5;
 const DESKTOP_DPR_CAP = 2;
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: !IS_TOUCH, powerPreference: "high-performance" });
+const RENDERER_FLAG = new URLSearchParams(location.search).get("renderer");
+const USE_WEBGPU = RENDERER_FLAG === "webgpu";
+
+let renderer;
+if (USE_WEBGPU) {
+  const { WebGPURenderer } = await import("three/webgpu");
+  renderer = new WebGPURenderer({ canvas, antialias: !IS_TOUCH });
+  await renderer.init();
+} else {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: !IS_TOUCH, powerPreference: "high-performance" });
+}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, IS_TOUCH ? MOBILE_DPR_CAP : DESKTOP_DPR_CAP));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -5756,6 +5768,7 @@ window.__test = {
       elapsedSec: WALK.elapsedSec
     };
   },
+  rendererType: USE_WEBGPU ? "webgpu" : "webgl",
   // Version stamp so tests can confirm hook is the expected build
   version: "1.0"
 };
